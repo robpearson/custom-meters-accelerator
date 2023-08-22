@@ -1,0 +1,165 @@
+﻿@model ManagedApplicationScheduler.Services.Models.PaymentFormModel
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+</head>
+<body>
+   <script type="text/javascript">
+    $(function () {
+        $("#SelectedProduct").change(function () {
+            var val = $(this).val();
+            var subItems = "";
+            $.getJSON("@Url.Action("GetProductPlans","Payment")", { id: val }, function (data) {
+                $.each(data, function (index, item) {
+                    subItems += "<option value='" + item.value + "'>" + item.text + "</option>"
+                });
+                $("#SelectedPlan").html(subItems);
+                });
+
+        });
+            $("#SelectedPlan").change(function () {
+            var val = $(this).val();
+            var subItems = "";
+            var prodId = $('#SelectedProduct').find(":selected").val();
+           $.getJSON("@Url.Action("GetPlanDimensions","Payment")", { offerId: prodId, planId: val }, function (data) {
+                    $.each(data, function (index, item) {
+                        subItems += "<option value='" + item.value + "'>" + item.text + "</option>"
+                    });
+                
+            $("#SelectedDimension").html(subItems);
+                });
+        });
+
+        $("#btnSubmit").click(function () {
+                var offset = new Date().getTimezoneOffset() / 60;
+                document.getElementById("TimezoneOffset").value = offset;
+  
+         });
+        
+
+        $(document).ready(function() {
+           
+              var d = new Date();
+              d.setHours(d.getHours() + 1);
+              var month = d.getMonth()+1;
+              var day = d.getDate();
+            var output = d.getFullYear() + '-' +
+                (('' + month).length < 2 ? '0' : '') + month + '-' +
+                (('' + day).length < 2 ? '0' : '') + day + 'T' +
+                (('' + d.getHours()).length < 2 ? '0' : '') + d.getHours() + ':00';
+                            
+              var date=document.getElementById("FirstRunDate")
+              date.min=output
+              $('#FirstRunDate').attr('min', output);
+              $('#FirstRunDate').val(output);
+              $('#FirstRunDate').attr('value',output);
+
+          });
+    }
+    );
+
+       function fetchAllPlans() {
+            $.ajax({
+                type: "Post",
+                url: "FetchAllPlans",
+                contentType: "application/json; charset=utf-8",
+                datatype: "json",
+                beforeSend: function () {
+                    console.log('beforeSend');
+                    swal({ title: "Inprogress!", text: "Fetching Plans from Partner Center API.", icon: "info", button: false, closeOnClickOutside: false });
+                },
+                success: function (data) {
+                    console.log('complete');
+                    swal({ title: "Complete", text: "Refresh the page to see any new fetched plans information.", icon: "info", button: true });
+                },
+                error: function (data) {
+                    console.log('error');
+                    swal({ title: "Error", text: "Something went wrong. Check logger logs.", icon: "error" });
+                }
+            });
+       }
+
+</script>
+
+
+    <div class="container">
+        
+        <div class="card-body">
+            <div class="text-center">
+                <span class="cm-section-heading">Add New Payment Metered Plan</span>
+            </div>
+        </div>
+        <br/>
+        <form method="post" id="frmPaymentEvents" asp-action="AddNewPaymentTrigger" asp-controller="Payment" >
+            <div style="align-content:center">
+
+                <table width="80%">
+                    <tr>
+                        <th></th><th>
+                            <a onclick="if (confirm('Are you sure you want to fetch all metered plans?')) { fetchAllPlans(); } else { return false;}" class="btn cm-button text-right float-right">Fetch All Plans Information</a>
+                            <br />
+                            <br />
+
+                        </th>
+                    </tr>
+                    <tr>
+                        <th>Payment Name&nbsp;&nbsp;</th>
+                        <th>@Html.TextBoxFor(s => s.PaymentName, "",  new { @class = "form-control", required = "required" })</th>
+                    </tr>
+                    <tr>
+                        <th>Offer</th>
+                        <th>@Html.DropDownListFor(s => s.SelectedProduct, Model.ProductList, "-- Select Offer --", new { @class = "form-control", required = "required"})</th>
+                    </tr>
+
+                    <tr>
+                        <th>Plan</th>
+                        <th>@Html.DropDownListFor(s => s.SelectedPlan, Model.PlanList, "-- Select Plan --", new { @class = "form-control", required = "required"})</th>
+                    </tr>
+
+                    <tr>
+                        <th>Dimension</th>
+                        <th>@Html.DropDownListFor(s => s.SelectedDimension, Model.DimensionsList, "-- Select Dimension --", new { @class = "form-control", required = "required" })</th>
+                    </tr>
+                    <tr>
+                        <th>Quantity</th>
+                        <th><input asp-for="Quantity" type="number" class="form-control"  step="0.01" min="0.01" value="@Model.Quantity" required="true"></th>
+                    </tr>
+
+                    <tr>
+                        <th>Payment Type</th>
+                       <th>@Html.DropDownListFor(s => s.SelectedPaymentType, Model.PaymentTypeList, "-- Select Payment Type --", new { @class = "form-control", required = "required" })</th>
+                    </tr>
+                    <tr>
+                        <th>First Run Date &nbsp;&nbsp; </th>
+                        <th>  
+                            <input asp-for="StartDate" id="FirstRunDate" type="datetime-local" class="form-control" required="true" size="24" step="3600">
+                            <br/>
+                             Time will be rounded to nearest Hour</th>
+                    </tr>
+
+                    <tr>
+                        <th></th>
+                        <th>  
+  
+                            <br/>
+                              <div class="input-group-append">
+                                <button type="submit" id="btnSubmit" class="btn btn-success">Add Plan Payment</button>
+                            </div>
+                       </th>
+                       <th>  
+
+                       </th>
+                    </tr>
+
+                </table>
+            </div>
+            <input type="hidden" id="TimezoneOffset" name="TimezoneOffset" />
+        </form>
+
+
+    </div>
+
+
+    
+</body>
