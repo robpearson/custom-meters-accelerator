@@ -77,7 +77,7 @@ namespace ManagedApplicationScheduler.Services.Utilities
 
             foreach (var item in items.value)
             {
-                if (item.friendlyName == planName)
+                if (item.externalID == planName)
                 {
                     return item.id;
                 }
