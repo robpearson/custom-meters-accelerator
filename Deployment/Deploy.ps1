@@ -317,7 +317,7 @@ Write-host "      ➡️ Tenant ID:                  $PCTenantID"
 Write-host "      ➡️ AAD Application ID section: $PCADApplicationID"
 Write-host ""
 Write-host "   🔵 Add The following URL in PartnerCenter AMA Plan Technical Configuration"
-Write-host "      ➡️ Notification Webhook section: https://$WebAppNamePrefix-portal.azurewebsites.net/api?sig="+$Sig
+Write-host "      ➡️ Notification Webhook section: https://$WebAppNamePrefix-admin.azurewebsites.net/api?sig=$Sig"
 
 $duration = (Get-Date) - $startTime
 Write-Host "Deployment Complete in $($duration.Minutes)m:$($duration.Seconds)s"
