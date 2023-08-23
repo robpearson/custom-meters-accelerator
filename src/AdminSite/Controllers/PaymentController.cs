@@ -25,10 +25,10 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
         private readonly ApplicationLogService applicationLogService;
         private readonly ILogger<PaymentController> logger;
         private readonly ManagedAppClientConfiguration config;
-        public PaymentController(ManagedAppClientConfiguration config, ILogger<PaymentController> logger, IPaymentRepository paymentRepository, IPlanRepository planRepository, IApplicationLogRepository applicationLogRepository)
+        public PaymentController(ManagedAppClientConfiguration config, ILogger<PaymentController> logger, IPaymentRepository paymentRepository, IPlanRepository planRepository, IApplicationLogRepository applicationLogRepository,IScheduledTasksRepository scheduledTasksRepository)
         {
             this.applicationLogService = new ApplicationLogService(applicationLogRepository);
-            this.paymentService = new PaymentService(paymentRepository);
+            this.paymentService = new PaymentService(paymentRepository,scheduledTasksRepository);
             this.planService = new PlanService(planRepository);
             this.logger = logger;
             this.config = config;

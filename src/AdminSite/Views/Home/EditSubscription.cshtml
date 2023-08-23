@@ -25,7 +25,8 @@
                             @Html.DisplayName("Managed App ResourceUri ")
                         </dt>
                         <dd class="col-sm-9 p-2 p10">
-                            @Html.DisplayFor(s => s.id)
+                            @Html.DisplayFor(s => s.ResourceUri)
+                            @Html.HiddenFor(s => s.ResourceUri)
                             @Html.HiddenFor(s => s.id)
                         </dd>
                         <dt class="col-sm-3 p-2 p10">

@@ -24,5 +24,6 @@ namespace ManagedApplicationScheduler.Services.Models
         public bool IsSuccess { get; set; }
 
         public string SubscriptionStatus { get; set; }
+
     }
 }

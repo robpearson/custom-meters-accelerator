@@ -1,5 +1,6 @@
 ﻿using ManagedApplicationScheduler.DataAccess.Contracts;
 using ManagedApplicationScheduler.DataAccess.Entities;
+using ManagedApplicationScheduler.DataAccess.Services;
 using ManagedApplicationScheduler.Services.Models;
 using System;
 using System.Collections.Generic;
@@ -12,10 +13,12 @@ namespace ManagedApplicationScheduler.Services.Services
     public class PaymentService
     {
         private IPaymentRepository paymentRepository;
+        private IScheduledTasksRepository scheduledTasksRepository;
 
-        public PaymentService(IPaymentRepository paymentRepository)
+        public PaymentService(IPaymentRepository paymentRepository, IScheduledTasksRepository scheduledTasksRepository)
         {
             this.paymentRepository = paymentRepository;
+            this.scheduledTasksRepository = scheduledTasksRepository;
         }
 
         public int SavePayment(PaymentModel paymentModel)
@@ -96,6 +99,42 @@ namespace ManagedApplicationScheduler.Services.Services
             return payment;
         }
 
-        
+        public List<Payment> GetPaymentByOfferByPlan(string offerId,string planId)
+        {
+            return paymentRepository.GetAll().Where(x=>x.PlanId==planId && x.OfferId == offerId).ToList();
+        }
+
+        public void SaveMilestonePayment(SubscriptionModel subscription)
+        {
+            var appName = subscription.id.Split("|")[8];
+            if(subscription.id !=null)
+            {
+                var payment = GetPaymentByOfferByPlan(subscription.Product, subscription.PlanId);
+                foreach(var item in payment)
+                {
+                    ScheduledTasks task = new ScheduledTasks()
+                    {
+                        ScheduledTaskName = item.PaymentName+"-"+appName,
+                        ResourceUri = subscription.ResourceUri,
+                        PlanId = item.PlanId,
+                        Dimension = item.Dimension,
+                        StartDate = item.StartDate.Value,
+                        Frequency = SchedulerFrequencyEnum.OneTime.ToString(),
+                        Quantity = item.Quantity,
+                        Status = "Scheduled",
+                        id = Guid.NewGuid().ToString()
+                    };
+                    task.PartitionKey = task.id;
+                    if(item.PaymentType=="Upfront")
+                    {
+                        DateTime rounded = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour+1, 0, 0);
+                        task.StartDate = rounded;
+                    }
+                    this.scheduledTasksRepository.Save(task);
+                }
+                
+             }
+
+        }
     }
 }

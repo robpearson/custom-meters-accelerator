@@ -182,7 +182,7 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
                     id = Guid.NewGuid().ToString(),
                     Frequency = schedulerUsageViewModel.SelectedSchedulerFrequency,
                     ScheduledTaskName = schedulerUsageViewModel.SchedulerName,
-                    ResourceUri = schedulerUsageViewModel.SelectedSubscription.Replace("|", "/", StringComparison.OrdinalIgnoreCase),
+                    ResourceUri = sub.ResourceUri,
                     //PlanId = selectedDimension.PlanId,
                     Dimension = schedulerUsageViewModel.SelectedDimension,
                     Quantity = Convert.ToDouble(schedulerUsageViewModel.Quantity),
@@ -275,7 +275,7 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
                     this.TempData["ShowWelcomeScreen"] = "True";
 
                     subscriptionDetail = this.subscriptionService.GetSubscriptionsViewById(subscriptionId);
-                    subscriptionDetail.meteringUsageResultModels = this.usageResultService.GetUsageBySubscription(subscriptionId.Replace("|", "/",StringComparison.OrdinalIgnoreCase));
+                    subscriptionDetail.meteringUsageResultModels = this.usageResultService.GetUsageBySubscription(SubscriptionModel.GetResourceUriFromId(subscriptionId));
                 }
                 else
                 {

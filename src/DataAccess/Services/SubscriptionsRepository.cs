@@ -31,8 +31,6 @@ namespace ManagedApplicationScheduler.DataAccess.Services
         public IEnumerable<Subscription> GetAll()
         {
             return this.context.Subscription.ToList();
-
-            //Where(s => s.id.StartsWith("|")).ToList();
         }
 
         /// <summary>

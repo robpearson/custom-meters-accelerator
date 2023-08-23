@@ -21,11 +21,13 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers.Webhook
         private readonly ManagedAppClientConfiguration config;
         private readonly SubscriptionService subscriptionService;
         private readonly ApplicationLogService applicationLogService;
-        public NotificationController(ManagedAppClientConfiguration config, ISubscriptionsRepository subscriptionsRepository, IApplicationLogRepository applicationLogRepository)
+        private readonly PaymentService paymentService;
+        public NotificationController(ManagedAppClientConfiguration config, ISubscriptionsRepository subscriptionsRepository, IApplicationLogRepository applicationLogRepository,IPaymentRepository paymentRepository, IScheduledTasksRepository scheduledTasksRepository)
         {
             subscriptionService = new SubscriptionService(subscriptionsRepository);
             this.config = config;
             this.applicationLogService = new ApplicationLogService(applicationLogRepository);
+            this.paymentService = new PaymentService(paymentRepository, scheduledTasksRepository);
             
         }
         [AllowAnonymous]
@@ -48,7 +50,7 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers.Webhook
                         var subscription = new SubscriptionModel
                         {
                             // CosmosDB does not support forward slashes in the id.
-                            id = notificationDefinition.ApplicationId.Replace("/", "|",StringComparison.OrdinalIgnoreCase),
+                            ResourceUri = notificationDefinition.ApplicationId,
                             PlanId = notificationDefinition.Plan.Name,
                             Product = notificationDefinition.Plan.Product,
                             Publisher = notificationDefinition.Plan.Publisher,
@@ -56,7 +58,8 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers.Webhook
                             ProvisionState = notificationDefinition.ProvisioningState,
                             ProvisionTime = DateTime.UtcNow,
                             ResourceUsageId = notificationDefinition.BillingDetails.ResourceUsageId,
-                            SubscriptionStatus = "Subscribed"
+                            SubscriptionStatus = "Subscribed",
+                            id = SubscriptionModel.GetIdFromResourceUri(notificationDefinition.ApplicationId),
                         };
 
                         try
@@ -74,10 +77,9 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers.Webhook
                             this.applicationLogService.AddApplicationLog($"Error during getting Product Dims.  {ex.Message}");
                         throw;
                         }
-
-
-
                         subscriptionService.SaveSubscription(subscription);
+                        paymentService.SaveMilestonePayment(subscription);
+                        
 
                         Console.WriteLine($"Successfully inserted the entry in CosmosDB for the application {notificationDefinition.ApplicationId}");
                         this.applicationLogService.AddApplicationLog($"Successfully inserted the entry in CosmosDB for the application {notificationDefinition.ApplicationId}");
@@ -89,7 +91,7 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers.Webhook
                         var subscription = new SubscriptionModel
                         {
                             // CosmosDB does not support forward slashes in the id.
-                            id = notificationDefinition.ApplicationId.Replace("/", "|",StringComparison.OrdinalIgnoreCase),
+                            ResourceUri = notificationDefinition.ApplicationId,
                             PlanId = notificationDefinition.Plan.Name,
                             Product = notificationDefinition.Plan.Product,
                             Publisher = notificationDefinition.Plan.Publisher,
