@@ -7,6 +7,7 @@ using ManagedApplicationScheduler.Services.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -36,6 +37,8 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers.Webhook
             {
                 throw new ArgumentNullException(nameof(notificationDefinition));
             }
+            this.applicationLogService.AddApplicationLog($"Notification recieved {JsonSerializer.Serialize(notificationDefinition)} ");
+
             if (config.Signature == sig)
             {
                 var creds = new ClientSecretCredential(config.PC_TenantId, config.PC_ClientID, config.PC_ClientSecret);
