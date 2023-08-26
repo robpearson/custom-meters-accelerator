@@ -5,14 +5,21 @@ using ManagedApplicationScheduler.Services.Models;
 using ManagedApplicationScheduler.Services.Services;
 using ManagedApplicationScheduler.Services.Utilities;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using static System.Collections.Specialized.BitVector32;
+using System.Linq;
+using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 namespace ManagedApplicationScheduler.AdminSite.Controllers
 {
@@ -48,68 +55,6 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
 
         }
 
-        [HttpGet]
-        public IActionResult NewPaymentGood()
-        {
-            this.logger.LogInformation("New Payment Controller");
-            if (this.User.Identity.IsAuthenticated)
-            {
-                this.TempData["ShowWelcomeScreen"] = "True";
-                try
-                {
-                    PaymentFormModel model = new();
-                    var productlist = this.planService.GetOfferList();
-                    // Create Dropdown list
-                    List<SelectListItem> offerlist = new();
-                    List<SelectListItem> planlist = new();
-                    List<SelectListItem> DimensionsList = new();
-                    List<SelectListItem> paymentTypelist = new()
-                    {
-                        new SelectListItem()
-                        {
-                            Text = "Upfront",
-                            Value = "Upfront",
-                        },
-                        new SelectListItem()
-                        {
-                            Text = "Milestone",
-                            Value = "Milestone",
-                        }
-
-                    };
-                    // Create Subscription Dropdown list
-                    foreach (var item in productlist)
-                    {
-                        offerlist.Add(new SelectListItem()
-                        {
-                            Text = item,
-                            Value = item
-                        });
-                    }
-                    // Create Plan Dropdown list
-                    model.DimensionsList = new SelectList(DimensionsList, "Value", "Text");
-                    model.PlanList = new SelectList(planlist, "Value", "Text");
-                    model.PaymentTypeList = new SelectList(paymentTypelist, "Value", "Text");
-                    model.ProductList = new SelectList(offerlist, "Value", "Text");
-
-
-
-                    return this.View(model);
-                }
-                catch (Exception ex)
-                {
-                    this.logger.LogError("{Message}", ex.Message);
-                    throw;
-                }
-            }
-            else
-            {
-                return this.RedirectToAction(nameof(this.Index));
-            }
-
-
-        }
-
         [HttpPost]
         public async Task<IActionResult> FetchAllPlans()
         {
@@ -133,7 +78,20 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
         public IActionResult GetProductPlans(string id)
         {
 
-            var plans = this.planService.GetPlanListByOfferId(id);
+           List<PlanModel> plans;
+
+            var value = HttpContext.Session.GetString("plans");
+
+            if (string.IsNullOrEmpty(value))
+            {
+                plans = this.planService.GetPlanListByOfferId(id);
+            }
+            else
+            {
+                plans = JsonConvert.DeserializeObject<List<PlanModel>>(value);
+                plans = plans.Where(s => s.Product == id).ToList();
+            }
+                
 
             if (plans.Count > 0)
             {
@@ -159,7 +117,23 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
         public IActionResult GetPlanDimensions(string offerId,string planId)
         {
 
-            var plan = this.planService.GetPlanByOfferIdPlanId(planId, offerId);
+            List<PlanModel> plans;
+            PlanModel plan;
+
+            var value = HttpContext.Session.GetString("plans");
+
+            if (string.IsNullOrEmpty(value))
+            {
+                plan = this.planService.GetPlanByOfferIdPlanId(planId, offerId);
+            }
+            else
+            {
+                plans = JsonConvert.DeserializeObject<List<PlanModel>>(value);
+                plan = plans.Where(s => s.Product == offerId && s.Name == planId).FirstOrDefault();
+            }
+
+
+            
 
             if (plan !=null)
             {
@@ -192,7 +166,7 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
             }
             try
             {
-                this.applicationLogService.AddApplicationLog($"Start Adding new Task : {JsonSerializer.Serialize(paymentFormModel)}");
+                this.applicationLogService.AddApplicationLog($"Start Adding new Task : {HttpUtility.HtmlEncode(paymentFormModel)}");
                 PaymentModel payment = new()
                 {
                     id = Guid.NewGuid().ToString(),
@@ -209,6 +183,7 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
                 this.applicationLogService.AddApplicationLog($"Completed Adding new Task : {HttpUtility.HtmlEncode(paymentFormModel.PaymentName)}");
 
                 return this.RedirectToAction(nameof(this.NewPayment));
+
 
             }
             catch (Exception ex)
@@ -246,6 +221,8 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
 
                     var productlist = this.planService.GetOfferList();
 
+                    var allplans = this.planService.GetAllPlan();
+                    this.HttpContext.Session.SetString("plans", JsonConvert.SerializeObject(allplans));
                     // Create Dropdown list
                     List<SelectListItem> offerlist = new();
                     List<SelectListItem> planlist = new();
