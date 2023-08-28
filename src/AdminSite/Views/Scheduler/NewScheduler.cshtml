@@ -9,7 +9,7 @@
     $(function () {
             $("#SelectedSubscription").change(function () {
             var val = $(this).val();
-            var subItems="";
+            var subItems = "<option value=''>-- Select Dimension --</option>";
             $.getJSON("@Url.Action("GetSubscriptionData","Scheduler")", {id:val} ,function (data) {
               $.each(data,function(index,item){
                 subItems+="<option value='"+item.value+"'>"+item.text+"</option>"

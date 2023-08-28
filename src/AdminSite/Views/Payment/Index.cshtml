@@ -8,8 +8,8 @@
     <div class="">
         <div class="card-body">
             <div class="text-center">
-                <span class="cm-section-heading">Current Milestone Payment Plans</span>
-                <button type="submit"  onclick="@("window.location.href='" + @Url.Action("NewPayment", "Payment") + "'");" class="cm-button-default text-right float-right">Add New MileStone Payment</button>
+                <span class="cm-section-heading">Current Payment Template Summary</span>
+                <button type="submit"  onclick="@("window.location.href='" + @Url.Action("NewPayment", "Payment") + "'");" class="cm-button-default text-right float-right">Add New Payment Template</button>
             </div>
         </div>
             <div id="myModal">
@@ -61,6 +61,7 @@
                                             <div class="nav-item dropdown">
                                                 <a class="nav-link dropdown cm-link-button" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-bars"></i></a>
                                                 <div class="dropdown-menu" aria-labelledby="dropdown01">
+                                                <a class="dropdown-item cm-dropdown-option" href="Payment/NewPayment/@item.id">Clone</a>
                                                     <a  class="dropdown-item cm-dropdown-option" href="Payment/DeletePayment/@item.id" onclick="return confirm('Are you sure?');" >Delete</a>
                                                 </div>
                                             </div>

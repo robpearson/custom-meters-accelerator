@@ -5,14 +5,21 @@ using ManagedApplicationScheduler.Services.Models;
 using ManagedApplicationScheduler.Services.Services;
 using ManagedApplicationScheduler.Services.Utilities;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using static System.Collections.Specialized.BitVector32;
+using System.Linq;
+using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 namespace ManagedApplicationScheduler.AdminSite.Controllers
 {
@@ -25,10 +32,10 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
         private readonly ApplicationLogService applicationLogService;
         private readonly ILogger<PaymentController> logger;
         private readonly ManagedAppClientConfiguration config;
-        public PaymentController(ManagedAppClientConfiguration config, ILogger<PaymentController> logger, IPaymentRepository paymentRepository, IPlanRepository planRepository, IApplicationLogRepository applicationLogRepository)
+        public PaymentController(ManagedAppClientConfiguration config, ILogger<PaymentController> logger, IPaymentRepository paymentRepository, IPlanRepository planRepository, IApplicationLogRepository applicationLogRepository,IScheduledTasksRepository scheduledTasksRepository)
         {
             this.applicationLogService = new ApplicationLogService(applicationLogRepository);
-            this.paymentService = new PaymentService(paymentRepository);
+            this.paymentService = new PaymentService(paymentRepository,scheduledTasksRepository);
             this.planService = new PlanService(planRepository);
             this.logger = logger;
             this.config = config;
@@ -45,69 +52,6 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
                 return View(model);
             }
             return this.RedirectToAction(nameof(this.Index));
-
-        }
-
-        [HttpGet]
-        public IActionResult NewPayment()
-        {
-            this.logger.LogInformation("New Payment Controller");
-            if (this.User.Identity.IsAuthenticated)
-            {
-                this.TempData["ShowWelcomeScreen"] = "True";
-                try
-                {
-                    PaymentFormModel model = new();
-
-                    var productlist = this.planService.GetOfferList();
-
-                    // Create Dropdown list
-                    List<SelectListItem> offerlist = new();
-                    List<SelectListItem> planlist = new();
-                    List<SelectListItem> DimensionsList = new();
-                    List<SelectListItem> paymentTypelist = new()
-                    {
-                        new SelectListItem()
-                        {
-                            Text = "Upfront",
-                            Value = "Upfront",
-                        },
-                        new SelectListItem()
-                        {
-                            Text = "Milestone",
-                            Value = "Milestone",
-                        }
-
-                    };
-
-
-                    // Create Subscription Dropdown list
-                    foreach (var item in productlist)
-                    {
-                        offerlist.Add(new SelectListItem()
-                        {
-                            Text = item,
-                            Value = item
-                        });
-                    }
-                    // Create Plan Dropdown list
-                    model.DimensionsList = new SelectList(DimensionsList, "Value", "Text");
-                    model.PlanList = new SelectList(planlist, "Value", "Text");
-                    model.PaymentTypeList = new SelectList(paymentTypelist, "Value", "Text");
-                    model.ProductList = new SelectList(offerlist, "Value", "Text");
-                    return this.View(model);
-                }
-                catch (Exception ex)
-                {
-                    this.logger.LogError("{Message}", ex.Message);
-                    throw;
-                }
-            }
-            else
-            {
-                return this.RedirectToAction(nameof(this.Index));
-            }
-
 
         }
 
@@ -134,20 +78,25 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
         public IActionResult GetProductPlans(string id)
         {
 
-            var plans = this.planService.GetPlanListByOfferId(id);
+           List<PlanModel> plans;
+
+            var value = HttpContext.Session.GetString("plans");
+
+            if (string.IsNullOrEmpty(value))
+            {
+                plans = this.planService.GetPlanListByOfferId(id);
+            }
+            else
+            {
+                plans = JsonConvert.DeserializeObject<List<PlanModel>>(value);
+                plans = plans.Where(s => s.Product == id).ToList();
+            }
+                
 
             if (plans.Count > 0)
             {
                 // Create Dimension Dropdown list
-                List<SelectListItem> selectedList = new()
-                {
-                    new SelectListItem()
-                    {
-                        Text = "-- Select Plan --",
-                        Value = "",
-                    }
-                };
-
+                List<SelectListItem> selectedList = new();
                 foreach (var item in plans)
                 {
                     selectedList.Add(new SelectListItem()
@@ -168,19 +117,28 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
         public IActionResult GetPlanDimensions(string offerId,string planId)
         {
 
-            var plan = this.planService.GetPlanByOfferIdPlanId(planId, offerId);
+            List<PlanModel> plans;
+            PlanModel plan;
+
+            var value = HttpContext.Session.GetString("plans");
+
+            if (string.IsNullOrEmpty(value))
+            {
+                plan = this.planService.GetPlanByOfferIdPlanId(planId, offerId);
+            }
+            else
+            {
+                plans = JsonConvert.DeserializeObject<List<PlanModel>>(value);
+                plan = plans.Where(s => s.Product == offerId && s.Name == planId).FirstOrDefault();
+            }
+
+
+            
 
             if (plan !=null)
             {
                 // Create Dimension Dropdown list
-                List<SelectListItem> selectedList = new()
-                {
-                    new SelectListItem()
-                    {
-                        Text = "-- Select Dimension --",
-                        Value = "",
-                    }
-                };
+                List<SelectListItem> selectedList = new();
                 var dims = plan.Dimension.Split('|');
                 foreach (var dim in dims)
                 {
@@ -208,7 +166,7 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
             }
             try
             {
-                this.applicationLogService.AddApplicationLog($"Start Adding new Task : {JsonSerializer.Serialize(paymentFormModel)}");
+                this.applicationLogService.AddApplicationLog($"Start Adding new Task : {HttpUtility.HtmlEncode(paymentFormModel)}");
                 PaymentModel payment = new()
                 {
                     id = Guid.NewGuid().ToString(),
@@ -223,7 +181,9 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
                 };
                 this.paymentService.SavePayment(payment);
                 this.applicationLogService.AddApplicationLog($"Completed Adding new Task : {HttpUtility.HtmlEncode(paymentFormModel.PaymentName)}");
-                return this.RedirectToAction(nameof(this.Index));
+
+                return this.RedirectToAction(nameof(this.NewPayment));
+
 
             }
             catch (Exception ex)
@@ -234,6 +194,116 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
             }
         }
 
+        [HttpGet]
+        public IActionResult NewPayment(string id)
+        {
+            PaymentModel payment = null;
+
+            if (this.User.Identity.IsAuthenticated)
+            {
+                if (id != null)
+                {
+                    this.logger.LogInformation("Payment Controller / New Payment Item Details:  Id {Id}", HttpUtility.HtmlEncode(id));
+                    this.applicationLogService.AddApplicationLog($"Start New Payment with Id : {HttpUtility.HtmlEncode(id)}");
+
+                    payment = this.paymentService.GetPaymentID(id);
+                }
+                else
+                {
+                    this.logger.LogInformation("Payment Controller / New Payment Item");
+                    this.applicationLogService.AddApplicationLog($"Start New Payment");
+
+                }
+                this.TempData["ShowWelcomeScreen"] = "True";
+                try
+                {
+                    PaymentFormModel model = new();
+
+                    var productlist = this.planService.GetOfferList();
+
+                    var allplans = this.planService.GetAllPlan();
+                    this.HttpContext.Session.SetString("plans", JsonConvert.SerializeObject(allplans));
+                    // Create Dropdown list
+                    List<SelectListItem> offerlist = new();
+                    List<SelectListItem> planlist = new();
+                    List<SelectListItem> DimensionsList = new();
+
+                    List<SelectListItem> paymentTypelist = new()
+                    {
+                        new SelectListItem()
+                        {
+                            Text = "Upfront",
+                            Value = "Upfront",
+                        },
+                        new SelectListItem()
+                        {
+                            Text = "Milestone",
+                            Value = "Milestone",
+                        }
+                    };
+                    // Create Subscription Dropdown list
+                    foreach (var item in productlist)
+                    {   
+                        offerlist.Add(new SelectListItem()
+                        {
+                            Text = item,
+                            Value = item,
+                        });
+                    }
+
+                    if (payment != null)
+                    {
+                        model.SelectedProduct = payment.OfferId;
+                        model.SelectedPlan = payment.PlanId;
+                        model.SelectedDimension = payment.Dimension;
+                        model.SelectedPaymentType = payment.PaymentType;
+                        var plans = this.planService.GetPlanListByOfferId(payment.OfferId);
+                        var dims = this.planService.GetPlanByOfferIdPlanId(payment.PlanId, payment.OfferId).Dimension.Split("|");
+                        
+                        foreach(var item in plans)
+                        {
+                            planlist.Add(new SelectListItem() { Value = item.Name,Text=item.PlanName });
+                        }
+                        foreach (var item in dims)
+                        {
+                            DimensionsList.Add(new SelectListItem() { Value = item, Text = item });
+                        }
+                        model.Quantity = payment.Quantity;
+
+                        if(payment.PaymentType=="Upfront")
+                        {
+                            model.IsUpfrontPayment = true;
+                        }
+                    }
+
+                    else
+                    {
+                        model.SelectedProduct = "-- Select Offer --";
+                        model.SelectedPlan = "-- Select Plan --";
+                        model.SelectedDimension = "-- Select Dimension --";
+                        model.SelectedPaymentType = "-- Select PaymentType --";
+                    }
+                    // Create Plan Dropdown list
+                    model.DimensionsList = new SelectList(DimensionsList, "Value", "Text");
+                    model.PlanList = new SelectList(planlist, "Value", "Text");
+                    model.PaymentTypeList = new SelectList(paymentTypelist, "Value", "Text");
+                    model.ProductList = new SelectList(offerlist, "Value", "Text");
+                   
+                    return this.View(model);
+                }
+                catch (Exception ex)
+                {
+                    this.logger.LogError("{Message}", ex.Message);
+                    throw;
+                }
+            }
+            else
+            {
+                return this.RedirectToAction(nameof(this.Index));
+            }
+
+
+        }
         [HttpGet]
         public IActionResult DeletePayment(string id)
         {

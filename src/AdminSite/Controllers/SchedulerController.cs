@@ -3,9 +3,11 @@ using ManagedApplicationScheduler.Services.Models;
 using ManagedApplicationScheduler.Services.Services;
 using ManagedApplicationScheduler.Services.Utilities;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -104,6 +106,8 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
 
                     var allActiveMeteredSubscriptions = this.subscriptionService.GetActiveSubscriptionsWithMeteredPlan();
 
+                    this.HttpContext.Session.SetString("subs", JsonConvert.SerializeObject(allActiveMeteredSubscriptions));
+
                     // Create Frequency Dropdown list
                     List<SelectListItem> SchedulerFrequencyList = new()
                     {
@@ -175,14 +179,14 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
             }
             try
             {
-                this.applicationLogService.AddApplicationLog($"Start Adding new Task : {JsonSerializer.Serialize(schedulerUsageViewModel)}");
+                this.applicationLogService.AddApplicationLog($"Start Adding new Task : {HttpUtility.HtmlEncode(schedulerUsageViewModel)}");
                 var sub = this.subscriptionService.GetSubscriptionByID(schedulerUsageViewModel.SelectedSubscription);
                 ScheduledTasksModel schedulerManagement = new()
                 {
                     id = Guid.NewGuid().ToString(),
                     Frequency = schedulerUsageViewModel.SelectedSchedulerFrequency,
                     ScheduledTaskName = schedulerUsageViewModel.SchedulerName,
-                    ResourceUri = schedulerUsageViewModel.SelectedSubscription.Replace("|", "/", StringComparison.OrdinalIgnoreCase),
+                    ResourceUri = sub.ResourceUri,
                     //PlanId = selectedDimension.PlanId,
                     Dimension = schedulerUsageViewModel.SelectedDimension,
                     Quantity = Convert.ToDouble(schedulerUsageViewModel.Quantity),
@@ -233,7 +237,7 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
         public IActionResult SchedulerLogDetail(string id)
         {
             var task = new ScheduledTasksModel();
-            this.logger.LogInformation("Scheduler Controller / SubscriptionLogDetail : subscriptionId: {Id}", JsonSerializer.Serialize(id));
+            this.logger.LogInformation("Scheduler Controller / SubscriptionLogDetail : subscriptionId: {Id}", HttpUtility.HtmlEncode(id));
             try
             {
                 if (this.User.Identity.IsAuthenticated)
@@ -265,7 +269,7 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
 
             var subscriptionDetail = new SubscriptionViewModel();
 
-            this.logger.LogInformation("Scheduler Controller / SubscriptionLogDetail : subscriptionId: {Id}", JsonSerializer.Serialize(subscriptionId));
+            this.logger.LogInformation("Scheduler Controller / SubscriptionLogDetail : subscriptionId: {Id}", HttpUtility.HtmlEncode(subscriptionId));
 
             try
             {
@@ -275,7 +279,7 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
                     this.TempData["ShowWelcomeScreen"] = "True";
 
                     subscriptionDetail = this.subscriptionService.GetSubscriptionsViewById(subscriptionId);
-                    subscriptionDetail.meteringUsageResultModels = this.usageResultService.GetUsageBySubscription(subscriptionId.Replace("|", "/",StringComparison.OrdinalIgnoreCase));
+                    subscriptionDetail.meteringUsageResultModels = this.usageResultService.GetUsageBySubscription(SubscriptionModel.GetResourceUriFromId(subscriptionId));
                 }
                 else
                 {
@@ -294,8 +298,25 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
         [HttpGet]
         public IActionResult GetSubscriptionData(string id)
         {
-            var allSubscriptionDetails = this.subscriptionService.GetActiveSubscriptionsWithMeteredPlan();
+
+            List<SubscriptionModel> allSubscriptionDetails;
+
+            var value = HttpContext.Session.GetString("subs");
+
+            if (string.IsNullOrEmpty(value))
+            {
+                
+                allSubscriptionDetails = this.subscriptionService.GetActiveSubscriptionsWithMeteredPlan();
+            }
+            else
+            {
+                allSubscriptionDetails = JsonConvert.DeserializeObject<List<SubscriptionModel>>(value);
+            }
+
+
+            
             var selectSubscription = allSubscriptionDetails.Where(s => s.id == id).FirstOrDefault();
+
             if (selectSubscription != null)
             {
                 // Create Dimension Dropdown list

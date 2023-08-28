@@ -41,5 +41,6 @@ namespace ManagedApplicationScheduler.Services.Models
         public string SelectedPaymentType { get; set; }
 
         public int TimezoneOffset { get; set; }
+        public bool IsUpfrontPayment { get; set; }
     }
 }

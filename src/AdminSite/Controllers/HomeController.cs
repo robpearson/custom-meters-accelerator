@@ -188,7 +188,6 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
             {
                 throw new ArgumentNullException(nameof(subscription));
             }
-            var subscriptionDetail = new SubscriptionModel();
 
             this.logger.LogInformation("Home Controller / Add New Subscription");
             this.applicationLogService.AddApplicationLog($"Start Saving new Subscription to Db: {JsonSerializer.Serialize(subscription)}");
@@ -200,10 +199,9 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
                     this.TempData["ShowWelcomeScreen"] = "True";
                     if (ModelState.IsValid)
                     {
+                        subscription.id = SubscriptionModel.GetIdFromResourceUri(subscription.ResourceUri);
                         subscription.SubscriptionStatus = "Subscribed";
                         subscription.ProvisionState = "Succeeded";
-                        subscription.id = subscription.id.Replace("/", "|",StringComparison.OrdinalIgnoreCase);
-
                         this.subscriptionService.SaveSubscription(subscription);
                         this.applicationLogService.AddApplicationLog($"Completed Saving new Subscription Id: {HttpUtility.HtmlEncode(subscription.id)}");
                         return RedirectToAction("Subscriptions");
@@ -226,8 +224,9 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
             }
 
 
-            return this.View(subscriptionDetail);
+             return this.RedirectToAction(nameof(this.Index));
         }
+
         [Authorize]
         [HttpGet]
         public ActionResult EditSubscription(string subscriptionId)
@@ -276,7 +275,7 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
                     this.TempData["ShowWelcomeScreen"] = "True";
                     if (ModelState.IsValid)
                     {
-                        this.subscriptionService.UpdateSubscription(subscription);
+                        this.subscriptionService.SaveSubscription(subscription);
                         this.applicationLogService.AddApplicationLog($"Completed Saving  Subscription Id: {HttpUtility.HtmlEncode(subscription?.id)}");
                     }
 
@@ -314,7 +313,7 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
                     this.TempData["ShowWelcomeScreen"] = "True";
                     if (ModelState.IsValid)
                     {
-                        var schedulerTasks = this.schedulerService.GetSchedulersTasksBySubscription(subscriptionId.Replace("|", "/", StringComparison.OrdinalIgnoreCase));
+                        var schedulerTasks = this.schedulerService.GetSchedulersTasksBySubscription(SubscriptionModel.GetResourceUriFromId(subscriptionId));
                         if (schedulerTasks.Count > 0)
                         {
                             this.subscriptionService.UpdateSubscriptionStatus(subscriptionId, "Unsubscribed");

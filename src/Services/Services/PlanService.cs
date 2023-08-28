@@ -65,6 +65,8 @@ namespace ManagedApplicationScheduler.Services.Services
                 plan.ProductName = entity.OfferName;
                 plan.Product = entity.OfferId; // Offer ID in notification payload
                 plan.Dimension = entity.Dimension;
+                plan.Publisher = "";
+                plan.Version = "";
                 planList.Add(plan);
             }
 

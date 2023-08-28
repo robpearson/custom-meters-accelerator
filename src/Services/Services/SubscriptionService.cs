@@ -33,39 +33,37 @@ public class SubscriptionService
 
     }
 
-    public int SaveSubscription(SubscriptionModel subscription)
+    public void SaveSubscription(SubscriptionModel subscription)
     {
-        var entity = new Subscription
-        {
-            PlanId = subscription.PlanId,
-            Product = subscription.Product,
-            ProvisionState = subscription.ProvisionState,
-            ProvisionTime = subscription.ProvisionTime,
-            Publisher = subscription.Publisher,
-            ResourceUsageId = subscription.ResourceUsageId,
-            id = subscription.id,
-            PartitionKey = subscription.id,
-            SubscriptionStatus = subscription.SubscriptionStatus,
-            Version = subscription.Version,
-            Dimension = subscription.Dimension
-        };
-
-        return this.subscriptionRepository.Save(entity);
-
-
-    }
-
-    public void UpdateSubscription(SubscriptionModel subscription)
-    {
-
         var entity = this.subscriptionRepository.Get(subscription.id);
-        entity.PlanId = subscription.PlanId;
-        entity.Product = subscription.Product;
-        entity.Publisher = subscription.Publisher;
-        entity.Version = subscription.Version;
-        entity.Dimension = subscription.Dimension;
-        this.subscriptionRepository.Update(entity);
+        if (entity != null)
+        {
+            entity.PlanId = subscription.PlanId;
+            entity.Product = subscription.Product;
+            entity.Publisher = subscription.Publisher;
+            entity.Version = subscription.Version;
+            entity.Dimension = subscription.Dimension;
+            this.subscriptionRepository.Update(entity);
+        }
+        else
+        {
+            entity = new Subscription
+            {
+                PlanId = subscription.PlanId,
+                Product = subscription.Product,
+                ProvisionState = subscription.ProvisionState,
+                ProvisionTime = subscription.ProvisionTime,
+                Publisher = subscription.Publisher,
+                ResourceUsageId = subscription.ResourceUsageId,
+                id = subscription.id,
+                PartitionKey = subscription.id,
+                SubscriptionStatus = subscription.SubscriptionStatus,
+                Version = subscription.Version,
+                Dimension = subscription.Dimension
+            };
 
+             this.subscriptionRepository.Save(entity);
+        }
 
     }
 
@@ -113,7 +111,7 @@ public class SubscriptionService
         subscriptionModel.SubscriptionStatus = subscription.SubscriptionStatus;
         subscriptionModel.Version = subscription.Version;
         subscriptionModel.Dimension = subscription.Dimension;
-
+        subscriptionModel.ResourceUri= SubscriptionModel.GetResourceUriFromId(id);
         return subscriptionModel;
     }
 
@@ -134,6 +132,7 @@ public class SubscriptionService
                 id = entity.id,
                 SubscriptionStatus = entity.SubscriptionStatus,
                 Version = entity.Version,
+                ResourceUri= SubscriptionModel.GetResourceUriFromId(entity.id),
                 Dimension = entity.Dimension
             };
             subscriptions.Add(subscriptionModel);
@@ -158,6 +157,7 @@ public class SubscriptionService
                 Subscription = sub.id.Split("|")[2],
                 ProvisionState = sub.ProvisionState,
                 SubscriptionStatus = sub.SubscriptionStatus
+                
             });
         }
         return subscriptions;

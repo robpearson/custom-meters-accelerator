@@ -2,64 +2,74 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    
+
 </head>
 <body>
-   <script type="text/javascript">
-    $(function () {
-        $("#SelectedProduct").change(function () {
-            var val = $(this).val();
-            var subItems = "";
-            $.getJSON("@Url.Action("GetProductPlans","Payment")", { id: val }, function (data) {
-                $.each(data, function (index, item) {
-                    subItems += "<option value='" + item.value + "'>" + item.text + "</option>"
-                });
-                $("#SelectedPlan").html(subItems);
-                });
-
-        });
-            $("#SelectedPlan").change(function () {
-            var val = $(this).val();
-            var subItems = "";
-            var prodId = $('#SelectedProduct').find(":selected").val();
-           $.getJSON("@Url.Action("GetPlanDimensions","Payment")", { offerId: prodId, planId: val }, function (data) {
+    <script type="text/javascript">
+        $(function () {
+            $("#SelectedProduct").change(function () {
+                var val = $(this).val();
+                var subItems = "<option value=''>-- Select Plan --</option>";
+                $.getJSON("@Url.Action("GetProductPlans","Payment")", { id: val }, function (data) {
                     $.each(data, function (index, item) {
                         subItems += "<option value='" + item.value + "'>" + item.text + "</option>"
                     });
-                
-            $("#SelectedDimension").html(subItems);
+                    $("#SelectedPlan").html(subItems);
                 });
-        });
 
-        $("#btnSubmit").click(function () {
+            });
+            $("#SelectedPlan").change(function () {
+                var val = $(this).val();
+                var subItems = "<option value=''>-- Select Dimension --</option>";
+                var prodId = $('#SelectedProduct').find(":selected").val();
+                $.getJSON("@Url.Action("GetPlanDimensions","Payment")", { offerId: prodId, planId: val }, function (data) {
+                    $.each(data, function (index, item) {
+                        subItems += "<option value='" + item.value + "'>" + item.text + "</option>"
+                    });
+
+                    $("#SelectedDimension").html(subItems);
+                });
+            });
+
+            $("#SelectedPaymentType").change(function () {
+
+                var val = $(this).val();
+                if (val == "Upfront") {
+                    $("#FirstRunDate").prop("disabled", true);
+                } else {
+                    $("#FirstRunDate").prop("disabled", false);
+                }
+            });
+
+            $("#btnSubmit").click(function () {
                 var offset = new Date().getTimezoneOffset() / 60;
                 document.getElementById("TimezoneOffset").value = offset;
-  
-         });
-        
 
-        $(document).ready(function() {
-           
-              var d = new Date();
-              d.setHours(d.getHours() + 1);
-              var month = d.getMonth()+1;
-              var day = d.getDate();
-            var output = d.getFullYear() + '-' +
-                (('' + month).length < 2 ? '0' : '') + month + '-' +
-                (('' + day).length < 2 ? '0' : '') + day + 'T' +
-                (('' + d.getHours()).length < 2 ? '0' : '') + d.getHours() + ':00';
-                            
-              var date=document.getElementById("FirstRunDate")
-              date.min=output
-              $('#FirstRunDate').attr('min', output);
-              $('#FirstRunDate').val(output);
-              $('#FirstRunDate').attr('value',output);
+            });
 
-          });
-    }
-    );
 
-       function fetchAllPlans() {
+            $(document).ready(function () {
+
+                var d = new Date();
+                d.setHours(d.getHours() + 1);
+                var month = d.getMonth() + 1;
+                var day = d.getDate();
+                var output = d.getFullYear() + '-' +
+                    (('' + month).length < 2 ? '0' : '') + month + '-' +
+                    (('' + day).length < 2 ? '0' : '') + day + 'T' +
+                    (('' + d.getHours()).length < 2 ? '0' : '') + d.getHours() + ':00';
+
+                var date = document.getElementById("FirstRunDate")
+                date.min = output
+                $('#FirstRunDate').attr('min', output);
+                $('#FirstRunDate').val(output);
+                $('#FirstRunDate').attr('value', output);
+
+            });
+        }
+        );
+
+        function fetchAllPlans() {
             $.ajax({
                 type: "Post",
                 url: "FetchAllPlans",
@@ -78,25 +88,50 @@
                     swal({ title: "Error", text: "Something went wrong. Check logger logs.", icon: "error" });
                 }
             });
-       }
+        }
 
-</script>
+        function addNewPayment() {
+            $.ajax({
+                type: "Post",
+                url: "AddNewPaymentTrigger",
+                contentType: "application/json; charset=utf-8",
+                datatype: "json",
+                data: FormData,
+                beforeSend: function () {
+                    console.log('beforeSend');
+                    swal({ title: "Inprogress!", text: "Saving Payment template information.", icon: "info", button: false, closeOnClickOutside: false });
+                },
+                success: function (data) {
+                    console.log('complete');
+                    swal({ title: "Complete", text: "Successfully, Saved Payment template information.", icon: "info", button: true });
+                },
+                error: function (data) {
+                    console.log('error');
+                    swal({ title: "Error", text: "Something went wrong. Check logger logs.", icon: "error" });
+                }
+            });
+        }
+
+
+            
+    </script>
 
 
     <div class="container">
-        
+
         <div class="card-body">
             <div class="text-center">
-                <span class="cm-section-heading">Add New Payment Metered Plan</span>
+                <span class="cm-section-heading">Add New Payment Template</span>
             </div>
         </div>
-        <br/>
-        <form method="post" id="frmPaymentEvents" asp-action="AddNewPaymentTrigger" asp-controller="Payment" >
+        <br />
+        <form method="post" id="frmPaymentData" asp-action="AddNewPaymentTrigger" asp-controller="Payment">
             <div style="align-content:center">
 
                 <table width="80%">
                     <tr>
-                        <th></th><th>
+                        <th></th>
+                        <th>
                             <a onclick="if (confirm('Are you sure you want to fetch all metered plans?')) { fetchAllPlans(); } else { return false;}" class="btn cm-button text-right float-right">Fetch All Plans Information</a>
                             <br />
                             <br />
@@ -109,47 +144,47 @@
                     </tr>
                     <tr>
                         <th>Offer</th>
-                        <th>@Html.DropDownListFor(s => s.SelectedProduct, Model.ProductList, "-- Select Offer --", new { @class = "form-control", required = "required"})</th>
+                        <th>@Html.DropDownListFor(s => s.SelectedProduct, Model.ProductList,Model.SelectedProduct,  new { @class = "form-control", required = "required"})</th>
                     </tr>
 
                     <tr>
                         <th>Plan</th>
-                        <th>@Html.DropDownListFor(s => s.SelectedPlan, Model.PlanList, "-- Select Plan --", new { @class = "form-control", required = "required"})</th>
+                        <th>@Html.DropDownListFor(s => s.SelectedPlan, Model.PlanList, Model.SelectedPlan, new { @class = "form-control", required = "required"})</th>
                     </tr>
 
                     <tr>
                         <th>Dimension</th>
-                        <th>@Html.DropDownListFor(s => s.SelectedDimension, Model.DimensionsList, "-- Select Dimension --", new { @class = "form-control", required = "required" })</th>
+                        <th>@Html.DropDownListFor(s => s.SelectedDimension, Model.DimensionsList,Model.SelectedDimension, new { @class = "form-control", required = "required" })</th>
                     </tr>
                     <tr>
                         <th>Quantity</th>
-                        <th><input asp-for="Quantity" type="number" class="form-control"  step="0.01" min="0.01" value="@Model.Quantity" required="true"></th>
+                        <th><input asp-for="Quantity" type="number" class="form-control" step="0.01" min="0.01" value="@Model.Quantity" required="true"></th>
                     </tr>
 
                     <tr>
                         <th>Payment Type</th>
-                       <th>@Html.DropDownListFor(s => s.SelectedPaymentType, Model.PaymentTypeList, "-- Select Payment Type --", new { @class = "form-control", required = "required" })</th>
+                        <th>@Html.DropDownListFor(s => s.SelectedPaymentType, Model.PaymentTypeList,Model.SelectedPaymentType, new { @class = "form-control", required = "required" })</th>
                     </tr>
                     <tr>
                         <th>First Run Date &nbsp;&nbsp; </th>
-                        <th>  
-                            <input asp-for="StartDate" id="FirstRunDate" type="datetime-local" class="form-control" required="true" size="24" step="3600">
-                            <br/>
-                             Time will be rounded to nearest Hour</th>
+                        <th>
+                            <input asp-for="StartDate" id="FirstRunDate" type="datetime-local" class="form-control" required="true" size="24" step="3600" disabled="@Model.IsUpfrontPayment">
+                            <br />
+                            Time will be rounded to nearest Hour
+                        </th>
                     </tr>
 
                     <tr>
                         <th></th>
-                        <th>  
-  
-                            <br/>
-                              <div class="input-group-append">
-                                <button type="submit" id="btnSubmit" class="btn btn-success">Add Plan Payment</button>
-                            </div>
-                       </th>
-                       <th>  
+                        <th>
 
-                       </th>
+                            <br />
+                                <button type="submit" id="btnSubmit" class="btn btn-success" onclick="savePaymentDetails()">Save & Add New</button> &nbsp;&nbsp;&nbsp;
+                            <a class="btn cm-button" id="backButton" asp-area="" asp-controller="Payment" asp-action="Index">Payment Template Summary</a>
+                        </th>
+                        <th>
+
+                        </th>
                     </tr>
 
                 </table>
@@ -161,5 +196,5 @@
     </div>
 
 
-    
+
 </body>
