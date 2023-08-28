@@ -14,7 +14,8 @@ namespace ManagedApplicationScheduler.Services.Models
         public string resourceType { get; set; }
         public string visibility { get; set; }
         public List<Property> properties { get; set; }
-        public List<SubscriptionAudiences> subscriptionAudiences { get; set; }
+        public List<Audiences> tenantAudiences { get; set; }
+        public List<Audiences> subscriptionAudiences { get; set; }
 
         public List<PriceSchedule> priceSchedules { get; set; }
         public List<CustomMeter> customMeters { get; set; }
@@ -56,7 +57,7 @@ namespace ManagedApplicationScheduler.Services.Models
         public List<Schedule> schedules { get; set; }
         public List<string> marketCodes { get; set; }
     }
-    public class SubscriptionAudiences
+    public class Audiences
     {
         public string id { get; set; }
         public string description { get; set; }

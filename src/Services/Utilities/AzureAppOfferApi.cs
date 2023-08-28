@@ -23,13 +23,13 @@ namespace ManagedApplicationScheduler.Services.Utilities
             this.httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
         }
 
-        public async Task<string> getProductDims(string offerId, string planName)
+        public async Task<string> getProductDims(string offerId, string planId)
         {
             string dims = "";
             string productId = await getProductIdAsync(offerId.Replace("-preview", ""));
             if (productId != null)
             {
-                string variantsId = await getVariantsId(productId, planName);
+                string variantsId = await getVariantsId(productId, planId);
                 if (variantsId != null)
                 {
                     string instanceId = await getInstanceId(productId, variantsId);
@@ -64,7 +64,7 @@ namespace ManagedApplicationScheduler.Services.Utilities
             return "";
         }
 
-        private async Task<string> getVariantsId(string productId, string planName)
+        private async Task<string> getVariantsId(string productId, string planId)
         {
 
 
@@ -77,7 +77,7 @@ namespace ManagedApplicationScheduler.Services.Utilities
 
             foreach (var item in items.value)
             {
-                if (item.externalID == planName)
+                if (item.externalID == planId)
                 {
                     return item.id;
                 }
