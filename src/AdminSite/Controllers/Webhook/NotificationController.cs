@@ -48,66 +48,55 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers.Webhook
                 var token = result.Token;
                 // If provisioning of a marketplace application instance is successful, we persist a billing entry to be picked up by the chron metric emitting job
                 if (notificationDefinition.EventType == "PUT" && notificationDefinition.ProvisioningState == "Succeeded" && notificationDefinition.BillingDetails?.ResourceUsageId != null)
+                {
+                    this.applicationLogService.AddApplicationLog($"Successful Subscription added {notificationDefinition.ApplicationId} ");
+                    var subscription = new SubscriptionModel
                     {
-                        this.applicationLogService.AddApplicationLog($"Successful Subscription added {notificationDefinition.ApplicationId} ");
-                        var subscription = new SubscriptionModel
-                        {
-                            // CosmosDB does not support forward slashes in the id.
-                            ResourceUri = notificationDefinition.ApplicationId,
-                            PlanId = notificationDefinition.Plan.Name,
-                            Product = notificationDefinition.Plan.Product,
-                            Publisher = notificationDefinition.Plan.Publisher,
-                            Version = notificationDefinition.Plan.Version,
-                            ProvisionState = notificationDefinition.ProvisioningState,
-                            ProvisionTime = DateTime.UtcNow,
-                            ResourceUsageId = notificationDefinition.BillingDetails.ResourceUsageId,
-                            SubscriptionStatus = "Subscribed",
-                            id = SubscriptionModel.GetIdFromResourceUri(notificationDefinition.ApplicationId),
-                        };
+                        // CosmosDB does not support forward slashes in the id.
+                        ResourceUri = notificationDefinition.ApplicationId,
+                        PlanId = notificationDefinition.Plan.Name,
+                        Product = notificationDefinition.Plan.Product.Replace("-preview","").Trim(),
+                        Publisher = notificationDefinition.Plan.Publisher,
+                        Version = notificationDefinition.Plan.Version,
+                        ProvisionState = notificationDefinition.ProvisioningState,
+                        ProvisionTime = DateTime.UtcNow,
+                        ResourceUsageId = notificationDefinition.BillingDetails.ResourceUsageId,
+                        SubscriptionStatus = "Subscribed",
+                        id = SubscriptionModel.GetIdFromResourceUri(notificationDefinition.ApplicationId),
+                    };
 
-                        try
-                        {
-                            this.applicationLogService.AddApplicationLog($"Get dims list for Product {subscription.Product} with plan {subscription.PlanId}");
-                            var azureOfferApi = new AzureAppOfferApi(token);
-                            subscription.Dimension = await azureOfferApi.getProductDims(subscription.Product, subscription.PlanId).ConfigureAwait(false);
+                    try
+                    {
+                        this.applicationLogService.AddApplicationLog($"Get dims list for Product {subscription.Product} with plan {subscription.PlanId}");
+                        var azureOfferApi = new AzureAppOfferApi(token);
+                        subscription.Dimension = await azureOfferApi.getProductDims(subscription.Product, subscription.PlanId).ConfigureAwait(false);
 
-                            this.applicationLogService.AddApplicationLog($"Found dims : {subscription.Dimension}");
-                        }
-                        catch (Exception ex)
-                        {
+                        this.applicationLogService.AddApplicationLog($"Found dims : {subscription.Dimension}");
+                    }
+                    catch (Exception ex)
+                    {
 
-                            Console.WriteLine($"Error during getting Product Dims.  {ex.Message}");
-                            this.applicationLogService.AddApplicationLog($"Error during getting Product Dims.  {ex.Message}");
+                        Console.WriteLine($"Error during getting Product Dims.  {ex.Message}");
+                        this.applicationLogService.AddApplicationLog($"Error during getting Product Dims.  {ex.Message}");
                         throw;
-                        }
-                        subscriptionService.SaveSubscription(subscription);
-                        paymentService.SaveMilestonePayment(subscription);
-                        
-
-                        Console.WriteLine($"Successfully inserted the entry in CosmosDB for the application {notificationDefinition.ApplicationId}");
-                        this.applicationLogService.AddApplicationLog($"Successfully inserted the entry in CosmosDB for the application {notificationDefinition.ApplicationId}");
                     }
-                    else if (notificationDefinition.EventType == "DELETE" && notificationDefinition.ProvisioningState == "Deleted")
-                    {
-                        // On successful deletion of a marketplace application instance try to delete a billing entry in case one was created
-                        this.applicationLogService.AddApplicationLog($"Received Delete for Subscription {notificationDefinition.ApplicationId} ");
-                        var subscription = new SubscriptionModel
-                        {
-                            // CosmosDB does not support forward slashes in the id.
-                            ResourceUri = notificationDefinition.ApplicationId,
-                            PlanId = notificationDefinition.Plan.Name,
-                            Product = notificationDefinition.Plan.Product,
-                            Publisher = notificationDefinition.Plan.Publisher,
-                            Version = notificationDefinition.Plan.Version,
-                            ProvisionState = notificationDefinition.ProvisioningState,
-                            ProvisionTime = DateTime.UtcNow,
-                            ResourceUsageId = notificationDefinition.BillingDetails.ResourceUsageId
-                        };
-                            subscriptionService.DeleteSubscription(subscription);
-                            Console.WriteLine($"Successfully deleted the entry in CosmosDB for the application {notificationDefinition.ApplicationId}");
-                            this.applicationLogService.AddApplicationLog($"Successfully deleted the entry in CosmosDB for the application {notificationDefinition.ApplicationId}");
+                    subscriptionService.SaveSubscription(subscription);
+                    paymentService.SaveMilestonePayment(subscription);
 
-                    }
+
+                    Console.WriteLine($"Successfully inserted the entry in CosmosDB for the application {notificationDefinition.ApplicationId}");
+                    this.applicationLogService.AddApplicationLog($"Successfully inserted the entry in CosmosDB for the application {notificationDefinition.ApplicationId}");
+                }
+                else if (notificationDefinition.EventType == "DELETE" && notificationDefinition.ProvisioningState == "Deleted")
+                {
+                    // On successful deletion of a marketplace application instance try to delete a billing entry in case one was created
+                    this.applicationLogService.AddApplicationLog($"Received Delete for Subscription {notificationDefinition.ApplicationId} ");
+                    var subId = SubscriptionModel.GetIdFromResourceUri(notificationDefinition.ApplicationId);
+                    subscriptionService.DeleteSubscription(subId);
+                    Console.WriteLine($"Successfully deleted the entry in CosmosDB for the application {notificationDefinition.ApplicationId}");
+                    this.applicationLogService.AddApplicationLog($"Successfully deleted the entry in CosmosDB for the application {notificationDefinition.ApplicationId}");
+
+                }
                 
                 return Ok();
             }
