@@ -4,7 +4,6 @@ Metered Scheduler Manager is a feature where Publisher can schedule **FIX Quanti
 1. OneTime
 
 
-
 ## Access Metered Scheduler Manager Dashboard
  Publisher can access **Scheduler Manager Dashboard** from **Home page** or side bar menu.
 ![home](./images/scheduler-home.png)
@@ -21,7 +20,7 @@ Publisher can add new scheduled task from by clicking **Add New Scheduled Metere
 ![add-task-2](./images/scheduler-add2.png)
 
 
-Publisher can schedule the task by click **Add Scheduler Usage Task** and the task will be added to the Sscheduled tasks.
+Publisher can schedule the task by click **Add Scheduler Usage Task** and the task will be added to the scheduled tasks.
 Once the task is added, the new task will show up in **Dashboard page**
 
 ![add-task-2](./images/scheduler-add3.png)

@@ -5,7 +5,7 @@
 - [Intended Use](#intended-use)
 - [Installation](#installation)
 - [Commercial Marketplace Documentation](#commercial-marketplace-documentation)
-- [Azure App Billing Scheduler Overview](#azure-app-billing-scheduler-pverview)
+- [Azure App Billing Scheduler Overview](#azure-app-billing-scheduler-overview)
 - [Projects](#projects)
 - [Technology and Versions](#technology-and-versions)
 - [Security](#security)
