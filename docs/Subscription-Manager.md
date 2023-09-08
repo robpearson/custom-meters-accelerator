@@ -7,7 +7,9 @@
   - [Partner Center Setup](#partner-center-setup)
   - [Manage subscriptions](#manage-subscriptions)
   - [View Metered History](#view-metered-history)
-  - [Metered Scheduler Manager](./Metered-Scheduler-Manager-Instruction.md)
+  - [Setup Notification Emails](#setup-notification-emails)
+  - [Metered Scheduler Manager](./Metered-Scheduler-Manager.md)
+  - [Payment Template Manager](./Payment-Template-Manager.md)
 
 ## Overview
 
@@ -26,7 +28,6 @@ The app **must** be added to User Management -> App Management
 
 
 Publisher can complete the offer and publish the offer for customer to subscribe
-
 ## Manage subscriptions
 Publish can managed subscription from portal subscription summary page
 
@@ -84,3 +85,8 @@ Enable Successful , Missing or Failure notification by edit the value and set it
 ![image](./images/Config2.png)
 
 ![image](./images/Config3.png)
+
+
+## NEXT SETP
+  - [Metered Scheduler Manager](./Metered-Scheduler-Manager.md)
+  - [Payment Template Manager](./Payment-Template-Manager.md)
