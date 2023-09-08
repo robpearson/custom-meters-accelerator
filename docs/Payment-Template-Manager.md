@@ -42,5 +42,8 @@ Publisher can delete payment by click **Delete**
 
 
 
+## NEXT SETP
+ - [Subscription Manager](./Subscription-Manager.md)
+ - [Metered Scheduler Manager](./Metered-Scheduler-Manager.md)
 
 

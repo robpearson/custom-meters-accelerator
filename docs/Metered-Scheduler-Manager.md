@@ -44,3 +44,6 @@ Publisher can delete scheduled task by click **Delete**
 
 
 
+## NEXT SETP
+- [Subscription Manager](./Subscription-Manager.md)
+- [Payment Template Manager](./Payment-Template-Manager.md)

@@ -4,6 +4,7 @@
 - [Introduction](#introduction)
 - [Intended Use](#intended-use)
 - [Installation](#installation)
+- [Publisher Documentation](./docs/Subscription-Manager.md)
 - [Commercial Marketplace Documentation](#commercial-marketplace-documentation)
 - [Azure App Billing Scheduler Overview](#azure-app-billing-scheduler-overview)
 - [Projects](#projects)
