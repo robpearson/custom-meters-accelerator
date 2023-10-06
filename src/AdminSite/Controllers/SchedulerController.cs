@@ -181,13 +181,18 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
             {
                 this.applicationLogService.AddApplicationLog($"Start Adding new Task : {HttpUtility.HtmlEncode(schedulerUsageViewModel)}");
                 var sub = this.subscriptionService.GetSubscriptionByID(schedulerUsageViewModel.SelectedSubscription);
+
+                if ( schedulerService.CheckIfSchedulerExists(schedulerUsageViewModel, sub.PlanId,sub.ResourceUri))
+                {
+                    return BadRequest();
+                }
+
                 ScheduledTasksModel schedulerManagement = new()
                 {
                     id = Guid.NewGuid().ToString(),
                     Frequency = schedulerUsageViewModel.SelectedSchedulerFrequency,
                     ScheduledTaskName = schedulerUsageViewModel.SchedulerName,
                     ResourceUri = sub.ResourceUri,
-                    //PlanId = selectedDimension.PlanId,
                     Dimension = schedulerUsageViewModel.SelectedDimension,
                     Quantity = Convert.ToDouble(schedulerUsageViewModel.Quantity),
                     StartDate = schedulerUsageViewModel.FirstRunDate.AddHours(schedulerUsageViewModel.TimezoneOffset),

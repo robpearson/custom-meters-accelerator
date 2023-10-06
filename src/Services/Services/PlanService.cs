@@ -146,12 +146,18 @@ namespace ManagedApplicationScheduler.Services.Services
         public async Task GetAllMeteredPlansAsync(string token)
         {
 
-
-            var azure = new AzureAppOfferApi(token);
-            var plan = await azure.getProductsPlansAsync().ConfigureAwait(true);
-            foreach (var item in plan)
+            try
             {
-                this.SavePlan(item);
+                var azure = new AzureAppOfferApi(token);
+                var plan = await azure.getProductsPlansAsync().ConfigureAwait(true);
+                foreach (var item in plan)
+                {
+                    this.SavePlan(item);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
             }
 
         }

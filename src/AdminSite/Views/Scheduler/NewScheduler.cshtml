@@ -48,6 +48,33 @@
     }
     );
 
+
+        function addNewScheduledTrigger() {
+            var valdata = $("#frmSchedulerEvents").serialize();
+            $.ajax({
+                type: "Post",
+                url: "AddNewScheduledTrigger",
+                contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                datatype: "json",
+                data: valdata,
+                beforeSend: function () {
+                    console.log('beforeSend');
+                    swal({ title: "Inprogress!", text: "Validate and saving scheduler information.", icon: "info", button: false, closeOnClickOutside: false });
+                },
+                success: function (data) {
+                    $("#frmSchedulerEvents")[0].reset();
+                    console.log('complete');
+                    swal({ title: "Complete", text: "Scheduler task saved successfully!", icon: "info", button: true });
+
+                },
+                error: function (data) {
+                    console.log('error');
+                    swal({ title: "Error", text: "Scheduler task already exists. Please check task to avoid duplicate submission.", icon: "error" });
+                }
+            });
+
+
+        }
 </script>
 
 
@@ -113,7 +140,9 @@
   
                             <br/>
                               <div class="input-group-append">
-                                <button type="submit" id="btnSubmit" class="btn btn-success">Add Scheduler Usage Task</button>
+                                <a id="btnSubmit" class="btn btn-success" style="color: #fff !important;" onclick="addNewScheduledTrigger()">Save & Add New</a> &nbsp;&nbsp;&nbsp;
+                                <a class="btn cm-button" id="backButton" asp-area="" asp-controller="Scheduler" asp-action="Index">Scheduler Summary</a>
+
                             </div>
                        </th>
                        <th>  
