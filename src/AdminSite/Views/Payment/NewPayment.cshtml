@@ -90,26 +90,31 @@
             });
         }
 
-        function addNewPayment() {
+        function addNewPaymentTrigger() {
+            var valdata = $("#frmPaymentData").serialize();
             $.ajax({
-                type: "Post",
-                url: "AddNewPaymentTrigger",
-                contentType: "application/json; charset=utf-8",
-                datatype: "json",
-                data: FormData,
-                beforeSend: function () {
-                    console.log('beforeSend');
-                    swal({ title: "Inprogress!", text: "Saving Payment template information.", icon: "info", button: false, closeOnClickOutside: false });
-                },
-                success: function (data) {
-                    console.log('complete');
-                    swal({ title: "Complete", text: "Successfully, Saved Payment template information.", icon: "info", button: true });
-                },
-                error: function (data) {
-                    console.log('error');
-                    swal({ title: "Error", text: "Something went wrong. Check logger logs.", icon: "error" });
-                }
+                    type: "Post",
+                    url: "addNewPaymentTrigger",
+                    contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                    datatype: "json",
+                    data: valdata,
+                    beforeSend: function () {
+                        console.log('beforeSend');
+                        swal({ title: "Inprogress!", text: "Validate and saving payment information.", icon: "info", button: false, closeOnClickOutside: false });
+                    },
+                    success: function (data) {
+                        $("#frmPaymentData")[0].reset();
+                        console.log('complete');
+                        swal({ title: "Complete", text: "Payment saved successfully!", icon: "info", button: true });
+                    
+                    },
+                    error: function (data) {
+                        console.log('error');
+                        swal({ title: "Error", text: "Payment exists. Please check payment to avoid duplicate submission.", icon: "error" });
+                    }
             });
+
+            
         }
 
 
@@ -125,7 +130,7 @@
             </div>
         </div>
         <br />
-        <form method="post" id="frmPaymentData" asp-action="AddNewPaymentTrigger" asp-controller="Payment">
+        <form method="post" id="frmPaymentData">
             <div style="align-content:center">
 
                 <table width="80%">
@@ -179,7 +184,7 @@
                         <th>
 
                             <br />
-                                <button type="submit" id="btnSubmit" class="btn btn-success" onclick="savePaymentDetails()">Save & Add New</button> &nbsp;&nbsp;&nbsp;
+                            <a  id="btnSubmit" class="btn btn-success"  onclick="addNewPaymentTrigger()">Save & Add New</a> &nbsp;&nbsp;&nbsp;
                             <a class="btn cm-button" id="backButton" asp-area="" asp-controller="Payment" asp-action="Index">Payment Template Summary</a>
                         </th>
                         <th>

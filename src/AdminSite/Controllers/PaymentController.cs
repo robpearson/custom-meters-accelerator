@@ -67,6 +67,8 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
             }
             catch (Exception ex)
             {
+                this.applicationLogService.AddApplicationLog($"Error: {ex.Message}");
+                this.applicationLogService.AddApplicationLog($"Error: {ex.InnerException}");
                 return BadRequest();
             }
             return Ok();
@@ -156,17 +158,59 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
             return this.PartialView("Error", "Can not find any metered dimension related to selected plan");
         }
 
+
+        [HttpPost]
+        [AutoValidateAntiforgeryToken]
+        public IActionResult CheckIfPaymentExists(PaymentFormModel paymentFormModel)
+        {
+            var existingPayments = paymentService.GetPaymentByOfferByPlanByDimByType(paymentFormModel.SelectedProduct, paymentFormModel.SelectedPlan, paymentFormModel.SelectedDimension, paymentFormModel.SelectedPaymentType);
+
+            foreach (var existingPayment in existingPayments)
+            {
+                return BadRequest();
+            }
+
+            return Ok();
+        }
+
         [HttpPost]
         [AutoValidateAntiforgeryToken]
         public IActionResult AddNewPaymentTrigger(PaymentFormModel paymentFormModel)
         {
+
             if (paymentFormModel == null)
             {
                 throw new ArgumentNullException(nameof(paymentFormModel));
             }
-            try
+            var existingPayments = paymentService.GetPaymentByOfferByPlanByDimByType(paymentFormModel.SelectedProduct, paymentFormModel.SelectedPlan, paymentFormModel.SelectedDimension, paymentFormModel.SelectedPaymentType);
+
+            foreach (var existingPayment in existingPayments)
+            {
+                if (existingPayment.PaymentName == paymentFormModel.PaymentName)
+                    return BadRequest();
+
+                if (existingPayment.PaymentType == "Upfront")
+                    return BadRequest();
+
+                if ((existingPayment.PaymentType == "Milestone") && (existingPayment.StartDate == paymentFormModel.StartDate))
+                    return BadRequest();
+            }
+
+            existingPayments = paymentService.GetPaymentByName(paymentFormModel.PaymentName);
+
+            foreach (var existingPayment in existingPayments)
+            {
+                if (existingPayment.PaymentName == paymentFormModel.PaymentName)
+                    return BadRequest();
+            }
+
+                try
             {
                 this.applicationLogService.AddApplicationLog($"Start Adding new Task : {HttpUtility.HtmlEncode(paymentFormModel)}");
+                // check if payment exist
+
+
+
                 PaymentModel payment = new()
                 {
                     id = Guid.NewGuid().ToString(),

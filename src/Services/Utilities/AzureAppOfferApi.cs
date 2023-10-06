@@ -234,24 +234,27 @@ namespace ManagedApplicationScheduler.Services.Utilities
                 var offerPlans = await getVariantsList(item.id);
                 foreach (var offerPlan in offerPlans)
                 {
-                    if (offerPlan.id != "testdrive")
+                    try
                     {
-                        var plan = new PlanModel();
-                        plan.ProductName = item.name;
-                        plan.Product = item.externalIDs[0].value;
-                        plan.Name = offerPlan.externalID; //planID
-                        plan.PlanName = offerPlan.friendlyName;
-                        string instanceId = await getInstanceId(item.id, offerPlan.id);
-                        if (instanceId != null)
+                        if (offerPlan.id != "testdrive")
                         {
-                            string dimlist = await getProductFeature(item.id, instanceId);
-                            if (dimlist!="")
+                            var plan = new PlanModel();
+                            plan.ProductName = item.name;
+                            plan.Product = item.externalIDs[0].value;
+                            plan.Name = offerPlan.externalID; //planID
+                            plan.PlanName = offerPlan.friendlyName;
+                            string instanceId = await getInstanceId(item.id, offerPlan.id);
+                            if (instanceId != null)
                             {
-                                plan.Dimension = dimlist;
-                                planList.Add(plan); // Add Only Product with Plan and Dim
+                                string dimlist = await getProductFeature(item.id, instanceId);
+                                if (dimlist != "")
+                                {
+                                    plan.Dimension = dimlist;
+                                    planList.Add(plan); // Add Only Product with Plan and Dim
+                                }
                             }
                         }
-                    }
+                    } catch (Exception ex) { throw; }
 
                 }
 

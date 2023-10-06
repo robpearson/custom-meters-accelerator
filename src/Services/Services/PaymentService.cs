@@ -23,6 +23,7 @@ namespace ManagedApplicationScheduler.Services.Services
 
         public int SavePayment(PaymentModel paymentModel)
         {
+            
 
             var entity = new Payment();
             entity.id = Guid.NewGuid().ToString();
@@ -106,11 +107,18 @@ namespace ManagedApplicationScheduler.Services.Services
             return paymentRepository.GetAll().Where(x=>x.PlanId==planId && x.OfferId == offerId).ToList();
         }
 
+        public List<Payment> GetPaymentByOfferByPlanByDimByType(string offerId, string planId,string dim, string paymentType)
+        {
+            return paymentRepository.GetAll().Where(x => x.PlanId == planId && x.OfferId == offerId && x.Dimension == dim && x.PaymentType == paymentType).ToList();
+        }
+
+        public List<Payment> GetPaymentByName(string paymentName)
+        {
+            return paymentRepository.GetAll().Where(x => x.PaymentName ==  paymentName).ToList();
+        }
         public void SaveMilestonePayment(SubscriptionModel subscription)
         {
             var appName = subscription.id.Split("|")[8];
-            if(subscription.id !=null)
-            {
                 var payment = GetPaymentByOfferByPlan(subscription.Product, subscription.PlanId);
                 foreach(var item in payment)
                 {
@@ -135,7 +143,7 @@ namespace ManagedApplicationScheduler.Services.Services
                     this.scheduledTasksRepository.Save(task);
                 }
                 
-             }
+             
 
         }
     }

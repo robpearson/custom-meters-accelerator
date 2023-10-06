@@ -3,6 +3,7 @@ using ManagedApplicationScheduler.DataAccess.Entities;
 using ManagedApplicationScheduler.Services.Contracts;
 using ManagedApplicationScheduler.Services.Helpers;
 using ManagedApplicationScheduler.Services.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -178,6 +179,31 @@ namespace ManagedApplicationScheduler.Services.Services
 
         }
 
+        public bool CheckIfSchedulerExists(SchedulerUsageViewModel task, string planId,string resourceUri)
+        {
+            var tasks = this.schedulerRepository.GetAll().Where(s => s.ResourceUri == resourceUri
+            && s.Frequency==task.SelectedSchedulerFrequency
+            && s.Dimension==task.SelectedDimension
+            && s.PlanId==planId
+            && s.StartDate.Value == task.FirstRunDate.AddHours(task.TimezoneOffset)).ToList();
+
+            return tasks.Any();
+        
+        }
     }
 }
 
+/*
+ {
+    "id": "b9e40313-2415-4165-b188-c828d9b4cea9",
+    "PartitionKey": "b9e40313-2415-4165-b188-c828d9b4cea9",
+    "Dimension": "key",
+    "Frequency": "OneTime",
+    "NextRunTime": null,
+    "PlanId": "meter1",
+    "Quantity": 1,
+    "ResourceUri": "/subscriptions/bf7adf12-c3a8-426c-9976-29f145eba70f/resourceGroups/msalemsaasws/providers/Microsoft.Solutions/applications/msals",
+    "ScheduledTaskName": "payment-q3-msals",
+    "StartDate": "2023-12-04T00:00:00"   
+}
+ */
