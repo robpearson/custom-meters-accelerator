@@ -29,7 +29,6 @@ The Azure Managed Application (AMA) Billing Scheduler is an opensource productio
 
 💼 **Subscription Management** : Partner will manage and track subscriptions status.
 
-
 ⭐ **No more exception requests:** Eliminate the need for requesting an exception for partners to support price model needs.
 
 ### Capabilities
