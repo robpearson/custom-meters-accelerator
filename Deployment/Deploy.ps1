@@ -66,7 +66,6 @@ if(!($KeyVault -match "^[a-zA-Z][a-z0-9-]+$")) {
     Throw "🛑 KeyVault name only allows alphanumeric and hyphens, but cannot start with a number or special character."
     Exit
 }
-
 #endregion 
 
 Write-Host "Starting AMA Scheduler Deployment..."
@@ -100,6 +99,22 @@ az account set -s $AzureSubscriptionID
 Write-Host "🔑 Azure Subscription '$AzureSubscriptionID' selected."
 
 #endregion
+
+
+#region Check If KeyVault Exists
+
+$KeyVaultApiUri="https://management.azure.com/subscriptions/$AzureSubscriptionID/providers/Microsoft.KeyVault/checkNameAvailability?api-version=2019-09-01"
+$KeyVaultApiBody='{"name": "'+$KeyVault+'","type": "Microsoft.KeyVault/vaults"}'
+
+$kv_check=az rest --method post --uri $KeyVaultApiUri --headers 'Content-Type=application/json' --body $KeyVaultApiBody | ConvertFrom-Json
+
+if( $kv_check.reason -eq "AlreadyExists")
+{
+	Throw "🛑 KeyVault name is already in use. Please use different name"
+    Exit
+}
+
+
 
 #region Dowloading assets if provided
 
