@@ -46,7 +46,7 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers.Webhook
                 var creds = new ClientSecretCredential(config.PC_TenantId, config.PC_ClientID, config.PC_ClientSecret);
                 var result = await creds.GetTokenAsync(new Azure.Core.TokenRequestContext(new string[] { config.PC_Scope }), System.Threading.CancellationToken.None).ConfigureAwait(false);
                 var token = result.Token;
-                // If provisioning of a marketplace application instance is successful, we persist a billing entry to be picked up by the chron metric emitting job
+                // If provisioning of a marketplace application instance is successful, we persist a Meter entry to be picked up by the chron metric emitting job
                 if (notificationDefinition.EventType == "PUT" && notificationDefinition.ProvisioningState == "Succeeded" && notificationDefinition.BillingDetails?.ResourceUsageId != null)
                 {
                     this.applicationLogService.AddApplicationLog($"Successful Subscription added {notificationDefinition.ApplicationId} ");
@@ -89,7 +89,7 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers.Webhook
                 }
                 else if (notificationDefinition.EventType == "DELETE" && notificationDefinition.ProvisioningState == "Deleted")
                 {
-                    // On successful deletion of a marketplace application instance try to delete a billing entry in case one was created
+                    // On successful deletion of a marketplace application instance try to delete a Meter entry in case one was created
                     this.applicationLogService.AddApplicationLog($"Received Delete for Subscription {notificationDefinition.ApplicationId} ");
                     var subId = SubscriptionModel.GetIdFromResourceUri(notificationDefinition.ApplicationId);
                     subscriptionService.DeleteSubscription(subId);

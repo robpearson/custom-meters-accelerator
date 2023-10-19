@@ -315,7 +315,7 @@ Remove-Item -Path ../Publish -recurse -Force
 
 Write-host "✅ If the intallation completed without error complete the folllowing checklist:"
 if ($ISADMTApplicationIDProvided) {  #If provided then show the user where to add the landing page in AAD, otherwise script did this already for the user.
-	Write-host "   🔵 Add The following URLs to the metered billing AAD App Registration in Azure Portal:"
+	Write-host "   🔵 Add The following URLs to the metered Meter AAD App Registration in Azure Portal:"
 	Write-host "      ➡️ https://$WebAppNamePrefix-admin.azurewebsites.net"
 	Write-host "      ➡️ https://$WebAppNamePrefix-admin.azurewebsites.net/"
 	Write-host "      ➡️ https://$WebAppNamePrefix-admin.azurewebsites.net/Home/Index"

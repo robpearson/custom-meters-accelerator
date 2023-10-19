@@ -3,7 +3,7 @@
 namespace ManagedApplicationScheduler.Services.Models
 {
     /// <summary>
-    /// The billing details definition
+    /// The Meter details definition
     /// </summary>
     public class BillingDetailsDefinitionModel
     {

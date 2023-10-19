@@ -32,7 +32,7 @@ namespace ManagedApplicationScheduler.Services.Models
         public PlanModel Plan { get; set; }
 
         /// <summary>
-        /// Gets or sets the billing details.
+        /// Gets or sets the Meter details.
         /// </summary>
         [JsonProperty(Required = Required.Default)]
         public BillingDetailsDefinitionModel BillingDetails { get; set; }
