@@ -88,8 +88,6 @@ public class Executor
                         {
                             schedulerService.SendSchedulerEmail(scheduledItem, "Missing",msg);
                         }
-
-
                     }
                     else 
                     {

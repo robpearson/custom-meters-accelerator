@@ -48,33 +48,6 @@
     }
     );
 
-
-        function addNewScheduledTrigger() {
-            var valdata = $("#frmSchedulerEvents").serialize();
-            $.ajax({
-                type: "Post",
-                url: "AddNewScheduledTrigger",
-                contentType: "application/x-www-form-urlencoded; charset=UTF-8",
-                datatype: "json",
-                data: valdata,
-                beforeSend: function () {
-                    console.log('beforeSend');
-                    swal({ title: "Inprogress!", text: "Validate and saving scheduler information.", icon: "info", button: false, closeOnClickOutside: false });
-                },
-                success: function (data) {
-                    $("#frmSchedulerEvents")[0].reset();
-                    console.log('complete');
-                    swal({ title: "Complete", text: "Scheduler task saved successfully!", icon: "info", button: true });
-
-                },
-                error: function (data) {
-                    console.log('error');
-                    swal({ title: "Error", text: "Scheduler task already exists. Please check task to avoid duplicate submission.", icon: "error" });
-                }
-            });
-
-
-        }
 </script>
 
 
@@ -87,18 +60,9 @@
         </div>
         
 
-        <form method="post" id="frmSchedulerEvents" asp-action="AddNewScheduledTrigger" asp-controller="Scheduler" >
+        <form method="post" id="frmSchedulerEvents" asp-action="NewScheduler" asp-controller="Scheduler">
             <div style="align-content:center">
                 <table>
-                    <tr>
-                        <th colspan="2">
-                            * Select a First Run Date at least an hour later than the current time.<br />
-                            * To update an existing scheduler item, please use the same Name, Subscription id, Plan and Dimension.
-                            <hr />
-                            <br />
-                        </th>
-                    </tr>
-
                     <tr>
                         <th>Scheduler Name&nbsp;&nbsp;</th>
                         <th>@Html.TextBoxFor(s => s.SchedulerName, "",  new { @class = "form-control", required = "required" })</th>
@@ -114,6 +78,7 @@
                     <tr>
                         <th>Quantity</th>
                         <th><input asp-for="Quantity" type="number" class="form-control"  step="0.01" min="0.01" value="@Model.Quantity" required="true"></th>
+                        
                     </tr>
 
                     <tr>
@@ -140,14 +105,17 @@
   
                             <br/>
                               <div class="input-group-append">
-                                <a id="btnSubmit" class="btn btn-success" style="color: #fff !important;" onclick="addNewScheduledTrigger()">Save & Add New</a> &nbsp;&nbsp;&nbsp;
+                                <button type="submit" id="btnSubmit" class="btn btn-success" style="color: #fff !important;">Save & Add New</button> &nbsp;&nbsp;&nbsp;
                                 <a class="btn cm-button" id="backButton" asp-area="" asp-controller="Scheduler" asp-action="Index">Scheduler Summary</a>
 
                             </div>
                        </th>
-                       <th>  
 
-                       </th>
+                    </tr>
+                    <tr>
+                        <th colspan="2">
+                            <span style="color:red">@Model.Error</span>
+                        </th>
                     </tr>
 
                 </table>
