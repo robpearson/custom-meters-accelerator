@@ -89,36 +89,6 @@
                 }
             });
         }
-
-        function addNewPaymentTrigger() {
-            var valdata = $("#frmPaymentData").serialize();
-            $.ajax({
-                    type: "Post",
-                    url: "addNewPaymentTrigger",
-                    contentType: "application/x-www-form-urlencoded; charset=UTF-8",
-                    datatype: "json",
-                    data: valdata,
-                    beforeSend: function () {
-                        console.log('beforeSend');
-                        swal({ title: "Inprogress!", text: "Validate and saving payment information.", icon: "info", button: false, closeOnClickOutside: false });
-                    },
-                    success: function (data) {
-                        $("#frmPaymentData")[0].reset();
-                        console.log('complete');
-                        swal({ title: "Complete", text: "Payment saved successfully!", icon: "info", button: true });
-                    
-                    },
-                    error: function (data) {
-                        console.log('error');
-                        swal({ title: "Error", text: "Payment exists. Please check payment to avoid duplicate submission.", icon: "error" });
-                    }
-            });
-
-            
-        }
-
-
-            
     </script>
 
 
@@ -130,7 +100,7 @@
             </div>
         </div>
         <br />
-        <form method="post" id="frmPaymentData">
+        <form method="post" id="frmPaymentData" asp-action="NewPayment" asp-controller="Payment">
             <div style="align-content:center">
 
                 <table width="80%">
@@ -184,14 +154,18 @@
                         <th>
 
                             <br />
-                            <a  id="btnSubmit" class="btn btn-success"  onclick="addNewPaymentTrigger()">Save & Add New</a> &nbsp;&nbsp;&nbsp;
+                            <button type="submit" id="btnSubmit" class="btn btn-success" style="color: #fff !important;">Save & Add New</button> &nbsp;&nbsp;&nbsp;
                             <a class="btn cm-button" id="backButton" asp-area="" asp-controller="Payment" asp-action="Index">Payment Template Summary</a>
                         </th>
                         <th>
 
                         </th>
                     </tr>
-
+                    <tr>
+                        <th colspan="2">
+                            <span style="color:red">@Model.Error</span>
+                        </th>
+                    </tr>
                 </table>
             </div>
             <input type="hidden" id="TimezoneOffset" name="TimezoneOffset" />

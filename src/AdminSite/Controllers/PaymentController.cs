@@ -32,10 +32,10 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
         private readonly ApplicationLogService applicationLogService;
         private readonly ILogger<PaymentController> logger;
         private readonly ManagedAppClientConfiguration config;
-        public PaymentController(ManagedAppClientConfiguration config, ILogger<PaymentController> logger, IPaymentRepository paymentRepository, IPlanRepository planRepository, IApplicationLogRepository applicationLogRepository,IScheduledTasksRepository scheduledTasksRepository)
+        public PaymentController(ManagedAppClientConfiguration config, ILogger<PaymentController> logger, IPaymentRepository paymentRepository, IPlanRepository planRepository, IApplicationLogRepository applicationLogRepository, IScheduledTasksRepository scheduledTasksRepository)
         {
             this.applicationLogService = new ApplicationLogService(applicationLogRepository);
-            this.paymentService = new PaymentService(paymentRepository,scheduledTasksRepository);
+            this.paymentService = new PaymentService(paymentRepository, scheduledTasksRepository);
             this.planService = new PlanService(planRepository);
             this.logger = logger;
             this.config = config;
@@ -80,7 +80,7 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
         public IActionResult GetProductPlans(string id)
         {
 
-           List<PlanModel> plans;
+            List<PlanModel> plans;
 
             var value = HttpContext.Session.GetString("plans");
 
@@ -93,7 +93,7 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
                 plans = JsonConvert.DeserializeObject<List<PlanModel>>(value);
                 plans = plans.Where(s => s.Product == id).ToList();
             }
-                
+
 
             if (plans.Count > 0)
             {
@@ -116,7 +116,7 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetPlanDimensions(string offerId,string planId)
+        public IActionResult GetPlanDimensions(string offerId, string planId)
         {
 
             List<PlanModel> plans;
@@ -135,9 +135,9 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
             }
 
 
-            
 
-            if (plan !=null)
+
+            if (plan != null)
             {
                 // Create Dimension Dropdown list
                 List<SelectListItem> selectedList = new();
@@ -158,59 +158,79 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
             return this.PartialView("Error", "Can not find any metered dimension related to selected plan");
         }
 
-
-        [HttpPost]
-        [AutoValidateAntiforgeryToken]
-        public IActionResult CheckIfPaymentExists(PaymentFormModel paymentFormModel)
+        private string DoesPaymentExists(PaymentFormModel paymentFormModel)
         {
+            string id = "";
+            bool paymentExist = false;
             var existingPayments = paymentService.GetPaymentByOfferByPlanByDimByType(paymentFormModel.SelectedProduct, paymentFormModel.SelectedPlan, paymentFormModel.SelectedDimension, paymentFormModel.SelectedPaymentType);
 
             foreach (var existingPayment in existingPayments)
             {
-                return BadRequest();
+                if (existingPayment.PaymentName == paymentFormModel.PaymentName)
+                {
+                    
+                    id = existingPayment.id;
+                    break;
+                    
+                }
+
+                if (existingPayment.PaymentType == "Upfront")
+                {
+                    id = existingPayment.id;
+                    break;
+                }
+                if ((existingPayment.PaymentType == "Milestone") && (existingPayment.StartDate == paymentFormModel.StartDate.AddHours(paymentFormModel.TimezoneOffset)))
+                {
+                    id = existingPayment.id;
+                    break;
+                }
             }
 
-            return Ok();
+            if (!paymentExist)
+            {
+
+                existingPayments = paymentService.GetPaymentByName(paymentFormModel.PaymentName);
+
+                foreach (var existingPayment in existingPayments)
+                {
+                    if (existingPayment.PaymentName == paymentFormModel.PaymentName)
+                        id = existingPayment.id;
+                    break;
+                    ;
+                }
+            }
+
+            return id;
         }
 
         [HttpPost]
         [AutoValidateAntiforgeryToken]
-        public IActionResult AddNewPaymentTrigger(PaymentFormModel paymentFormModel)
+        public IActionResult NewPayment(PaymentFormModel paymentFormModel)
         {
-
             if (paymentFormModel == null)
             {
                 throw new ArgumentNullException(nameof(paymentFormModel));
             }
-            var existingPayments = paymentService.GetPaymentByOfferByPlanByDimByType(paymentFormModel.SelectedProduct, paymentFormModel.SelectedPlan, paymentFormModel.SelectedDimension, paymentFormModel.SelectedPaymentType);
-
-            foreach (var existingPayment in existingPayments)
+            string id = DoesPaymentExists(paymentFormModel);
+            if (!string.IsNullOrEmpty(id))
             {
-                if (existingPayment.PaymentName == paymentFormModel.PaymentName)
-                    return BadRequest();
 
-                if (existingPayment.PaymentType == "Upfront")
-                    return BadRequest();
+                var existingPayment = PreparePaymentFormModel(id);
 
-                if ((existingPayment.PaymentType == "Milestone") && (existingPayment.StartDate == paymentFormModel.StartDate))
-                    return BadRequest();
+                paymentFormModel.PlanList = existingPayment.PlanList;
+                paymentFormModel.SelectedProduct = existingPayment.SelectedProduct;
+                paymentFormModel.ProductList = existingPayment.ProductList;
+                paymentFormModel.DimensionsList = existingPayment.DimensionsList;
+                paymentFormModel.PaymentTypeList = existingPayment.PaymentTypeList;
+                paymentFormModel.Quantity = existingPayment.Quantity;
+                paymentFormModel.Error = "Payment already exist! Avoid duplicate Payment in order to avoid duplicate billing!";
+                return this.View(paymentFormModel);
+
             }
-
-            existingPayments = paymentService.GetPaymentByName(paymentFormModel.PaymentName);
-
-            foreach (var existingPayment in existingPayments)
-            {
-                if (existingPayment.PaymentName == paymentFormModel.PaymentName)
-                    return BadRequest();
-            }
-
-                try
+            try
             {
                 this.applicationLogService.AddApplicationLog($"Start Adding new Task : {HttpUtility.HtmlEncode(paymentFormModel)}");
                 // check if payment exist
-
-
-
                 PaymentModel payment = new()
                 {
                     id = Guid.NewGuid().ToString(),
@@ -241,98 +261,22 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
         [HttpGet]
         public IActionResult NewPayment(string id)
         {
-            PaymentModel payment = null;
-
             if (this.User.Identity.IsAuthenticated)
             {
                 if (id != null)
                 {
                     this.logger.LogInformation("Payment Controller / New Payment Item Details:  Id {Id}", HttpUtility.HtmlEncode(id));
                     this.applicationLogService.AddApplicationLog($"Start New Payment with Id : {HttpUtility.HtmlEncode(id)}");
-
-                    payment = this.paymentService.GetPaymentID(id);
                 }
                 else
                 {
                     this.logger.LogInformation("Payment Controller / New Payment Item");
                     this.applicationLogService.AddApplicationLog($"Start New Payment");
-
                 }
                 this.TempData["ShowWelcomeScreen"] = "True";
                 try
                 {
-                    PaymentFormModel model = new();
-
-                    var productlist = this.planService.GetOfferList();
-
-                    var allplans = this.planService.GetAllPlan();
-                    this.HttpContext.Session.SetString("plans", JsonConvert.SerializeObject(allplans));
-                    // Create Dropdown list
-                    List<SelectListItem> offerlist = new();
-                    List<SelectListItem> planlist = new();
-                    List<SelectListItem> DimensionsList = new();
-
-                    List<SelectListItem> paymentTypelist = new()
-                    {
-                        new SelectListItem()
-                        {
-                            Text = "Upfront",
-                            Value = "Upfront",
-                        },
-                        new SelectListItem()
-                        {
-                            Text = "Milestone",
-                            Value = "Milestone",
-                        }
-                    };
-                    // Create Subscription Dropdown list
-                    foreach (var item in productlist)
-                    {   
-                        offerlist.Add(new SelectListItem()
-                        {
-                            Text = item,
-                            Value = item,
-                        });
-                    }
-
-                    if (payment != null)
-                    {
-                        model.SelectedProduct = payment.OfferId;
-                        model.SelectedPlan = payment.PlanId;
-                        model.SelectedDimension = payment.Dimension;
-                        model.SelectedPaymentType = payment.PaymentType;
-                        var plans = this.planService.GetPlanListByOfferId(payment.OfferId);
-                        var dims = this.planService.GetPlanByOfferIdPlanId(payment.PlanId, payment.OfferId).Dimension.Split("|");
-                        
-                        foreach(var item in plans)
-                        {
-                            planlist.Add(new SelectListItem() { Value = item.Name,Text=item.PlanName });
-                        }
-                        foreach (var item in dims)
-                        {
-                            DimensionsList.Add(new SelectListItem() { Value = item, Text = item });
-                        }
-                        model.Quantity = payment.Quantity;
-
-                        if(payment.PaymentType=="Upfront")
-                        {
-                            model.IsUpfrontPayment = true;
-                        }
-                    }
-
-                    else
-                    {
-                        model.SelectedProduct = "-- Select Offer --";
-                        model.SelectedPlan = "-- Select Plan --";
-                        model.SelectedDimension = "-- Select Dimension --";
-                        model.SelectedPaymentType = "-- Select PaymentType --";
-                    }
-                    // Create Plan Dropdown list
-                    model.DimensionsList = new SelectList(DimensionsList, "Value", "Text");
-                    model.PlanList = new SelectList(planlist, "Value", "Text");
-                    model.PaymentTypeList = new SelectList(paymentTypelist, "Value", "Text");
-                    model.ProductList = new SelectList(offerlist, "Value", "Text");
-                   
+                    PaymentFormModel model = PreparePaymentFormModel(id);
                     return this.View(model);
                 }
                 catch (Exception ex)
@@ -366,6 +310,83 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
                 throw;
             }
 
+        }
+
+        private PaymentFormModel PreparePaymentFormModel(string id)
+        {
+            var payment =  this.paymentService.GetPaymentID(id);
+            PaymentFormModel model = new();
+            var productlist = this.planService.GetOfferList();
+
+            var allplans = this.planService.GetAllPlan();
+            this.HttpContext.Session.SetString("plans", JsonConvert.SerializeObject(allplans));
+            // Create Dropdown list
+            List<SelectListItem> offerlist = new();
+            List<SelectListItem> planlist = new();
+            List<SelectListItem> DimensionsList = new();
+
+            List<SelectListItem> paymentTypelist = new()
+                    {
+                        new SelectListItem()
+                        {
+                            Text = "Upfront",
+                            Value = "Upfront",
+                        },
+                        new SelectListItem()
+                        {
+                            Text = "Milestone",
+                            Value = "Milestone",
+                        }
+                    };
+            // Create Subscription Dropdown list
+            foreach (var item in productlist)
+            {
+                offerlist.Add(new SelectListItem()
+                {
+                    Text = item,
+                    Value = item,
+                });
+            }
+
+            if (payment != null)
+            {
+                model.SelectedProduct = payment.OfferId;
+                model.SelectedPlan = payment.PlanId;
+                model.SelectedDimension = payment.Dimension;
+                model.SelectedPaymentType = payment.PaymentType;
+                var plans = this.planService.GetPlanListByOfferId(payment.OfferId);
+                var dims = this.planService.GetPlanByOfferIdPlanId(payment.PlanId, payment.OfferId).Dimension.Split("|");
+
+                foreach (var item in plans)
+                {
+                    planlist.Add(new SelectListItem() { Value = item.Name, Text = item.PlanName });
+                }
+                foreach (var item in dims)
+                {
+                    DimensionsList.Add(new SelectListItem() { Value = item, Text = item });
+                }
+                model.Quantity = payment.Quantity;
+
+                if (payment.PaymentType == "Upfront")
+                {
+                    model.IsUpfrontPayment = true;
+                }
+            }
+
+            else
+            {
+                model.SelectedProduct = "-- Select Offer --";
+                model.SelectedPlan = "-- Select Plan --";
+                model.SelectedDimension = "-- Select Dimension --";
+                model.SelectedPaymentType = "-- Select PaymentType --";
+            }
+            // Create Plan Dropdown list
+            model.DimensionsList = new SelectList(DimensionsList, "Value", "Text");
+            model.PlanList = new SelectList(planlist, "Value", "Text");
+            model.PaymentTypeList = new SelectList(paymentTypelist, "Value", "Text");
+            model.ProductList = new SelectList(offerlist, "Value", "Text");
+
+            return model;
         }
     }
 

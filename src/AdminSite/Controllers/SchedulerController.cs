@@ -53,7 +53,7 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
             , IUsageResultRepository usageResultRepository, IApplicationLogRepository applicationLogRepository)
 
         {
-            this.schedulerService = new SchedulerService(schedulerTasksRepository,null,null);
+            this.schedulerService = new SchedulerService(schedulerTasksRepository, null, null);
             this.subscriptionService = new SubscriptionService(subscriptionsRepository);
             this.usageResultService = new UsageResultService(usageResultRepository);
             this.applicationLogService = new ApplicationLogService(applicationLogRepository);
@@ -92,6 +92,58 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
             return this.View(data);
 
         }
+
+        private SchedulerUsageViewModel PrepareSchedulerUsageViewModel(string id)
+        {
+            SchedulerUsageViewModel schedulerUsageViewModel = new();
+
+            var allActiveMeteredSubscriptions = this.subscriptionService.GetActiveSubscriptionsWithMeteredPlan();
+
+            this.HttpContext.Session.SetString("subs", JsonConvert.SerializeObject(allActiveMeteredSubscriptions));
+
+            // Create Frequency Dropdown list
+            List<SelectListItem> SchedulerFrequencyList = new()
+                    {
+                        new SelectListItem()
+                        {
+                            Text = "OneTime",
+                            Value = SchedulerFrequencyEnum.OneTime.ToString(),
+                        }
+                    };
+
+
+            // Create Subscription Dropdown list
+            List<SelectListItem> SubscriptionList = new();
+            List<SelectListItem> DimensionsList = new();
+            foreach (var item in allActiveMeteredSubscriptions)
+            {
+                var sub = item.id.Split("|");
+                SubscriptionList.Add(new SelectListItem()
+                {
+                    Text = sub[2] + "|" + sub[8],
+                    Value = item.id.ToString(),
+                });
+
+                if (item.id == id)
+                {
+                    var dimlist = item.Dimension.Split("|");
+                    foreach (var dim in dimlist)
+                    {
+                        DimensionsList.Add(new SelectListItem()
+                        {
+                            Text = dim,
+                            Value = dim
+                        });
+                    }
+                }
+
+            }
+            // Create Plan Dropdown list
+            schedulerUsageViewModel.DimensionsList = new SelectList(DimensionsList, "Value", "Text");
+            schedulerUsageViewModel.SubscriptionList = new SelectList(SubscriptionList, "Value", "Text");
+            schedulerUsageViewModel.SchedulerFrequencyList = new SelectList(SchedulerFrequencyList, "Value", "Text");
+            return schedulerUsageViewModel;
+        }
         [HttpGet]
         public IActionResult NewScheduler(string id)
         {
@@ -102,61 +154,13 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
                 this.TempData["ShowWelcomeScreen"] = "True";
                 try
                 {
-                    SchedulerUsageViewModel schedulerUsageViewModel = new ();
-
-                    var allActiveMeteredSubscriptions = this.subscriptionService.GetActiveSubscriptionsWithMeteredPlan();
-
-                    this.HttpContext.Session.SetString("subs", JsonConvert.SerializeObject(allActiveMeteredSubscriptions));
-
-                    // Create Frequency Dropdown list
-                    List<SelectListItem> SchedulerFrequencyList = new()
-                    {
-                        new SelectListItem()
-                        {
-                            Text = "OneTime",
-                            Value = SchedulerFrequencyEnum.OneTime.ToString(),
-                        }
-                    };
-
-
-                    // Create Subscription Dropdown list
-                    List<SelectListItem> SubscriptionList = new ();
-                    List<SelectListItem> DimensionsList = new();
-                    foreach (var item in allActiveMeteredSubscriptions)
-                    {
-                        var sub = item.id.Split("|");
-                        SubscriptionList.Add(new SelectListItem()
-                        {
-                            Text = sub[2] + "|" + sub[8],
-                            Value = item.id.ToString(),
-                        });
-
-                        if (item.id == id)
-                        {
-                            var dimlist = item.Dimension.Split("|");
-                            foreach (var dim in dimlist)
-                            {
-                                DimensionsList.Add(new SelectListItem()
-                                {
-                                    Text = dim,
-                                    Value = dim
-                                });
-                            }
-                        }
-
-                    }
-                    // Create Plan Dropdown list
-                    schedulerUsageViewModel.DimensionsList = new SelectList(DimensionsList, "Value", "Text");
-                    schedulerUsageViewModel.SubscriptionList = new SelectList(SubscriptionList, "Value", "Text");
-                    schedulerUsageViewModel.SchedulerFrequencyList = new SelectList(SchedulerFrequencyList, "Value", "Text");
+                    var schedulerUsageViewModel = PrepareSchedulerUsageViewModel(id);
                     schedulerUsageViewModel.SelectedSubscription = id;
-
-
                     return this.View(schedulerUsageViewModel);
                 }
                 catch (Exception ex)
                 {
-                    this.logger.LogError("{Message}",ex.Message);
+                    this.logger.LogError("{Message}", ex.Message);
                     throw;
                 }
             }
@@ -167,11 +171,9 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
 
 
         }
-
-
         [HttpPost]
         [AutoValidateAntiforgeryToken]
-        public IActionResult AddNewScheduledTrigger(SchedulerUsageViewModel schedulerUsageViewModel)
+        public IActionResult NewScheduler(SchedulerUsageViewModel schedulerUsageViewModel)
         {
             if (schedulerUsageViewModel == null)
             {
@@ -184,7 +186,16 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
 
                 if ( schedulerService.CheckIfSchedulerExists(schedulerUsageViewModel, sub.PlanId,sub.ResourceUri))
                 {
-                    return BadRequest();
+                    // Prepare the lists
+                    var existingSchedulerUsageViewModel = PrepareSchedulerUsageViewModel(schedulerUsageViewModel.SelectedSubscription);
+                    existingSchedulerUsageViewModel.Error = "Scheduler Task already exist! Avoid duplicate tasks in order to avoid duplicate billing!";
+                    existingSchedulerUsageViewModel.SelectedDimension = schedulerUsageViewModel.SelectedDimension;
+                    existingSchedulerUsageViewModel.SchedulerName = schedulerUsageViewModel.SchedulerName;
+                    existingSchedulerUsageViewModel.SelectedSchedulerFrequency = schedulerUsageViewModel.SelectedSchedulerFrequency;
+                    existingSchedulerUsageViewModel.Quantity = schedulerUsageViewModel.Quantity;
+                    existingSchedulerUsageViewModel.FirstRunDate = schedulerUsageViewModel.FirstRunDate;
+                    existingSchedulerUsageViewModel.TimezoneOffset = schedulerUsageViewModel.TimezoneOffset;
+                    return this.View(existingSchedulerUsageViewModel);
                 }
 
                 ScheduledTasksModel schedulerManagement = new()
