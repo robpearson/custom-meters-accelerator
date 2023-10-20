@@ -148,7 +148,7 @@ if (!($ADApplicationID)) {
 	
 		$appCreateRequestBodyJson = @"
 {
-	"displayName" : "$WebAppNamePrefix-meteredBilling",
+	"displayName" : "$WebAppNamePrefix-meteredMeter",
 	"api": 
 	{
 		"requestedAccessTokenVersion" : 2
@@ -190,7 +190,7 @@ if (!($ADApplicationID)) {
 		$ADObjectID = $ADApplication.id
 	
         sleep 5 #this is to give time to AAD to register
-        $ADApplicationSecret = az ad app credential reset --id $ADApplicationID --append --display-name 'AMAMeteredBilling' --years 2 --query password --only-show-errors --output tsv
+        $ADApplicationSecret = az ad app credential reset --id $ADApplicationID --append --display-name 'AMAMeteredMeter' --years 2 --query password --only-show-errors --output tsv
 				
         Write-Host "   🔵 AMA App Registration created."
 		Write-Host "      ➡️ Application ID:" $ADApplicationID  

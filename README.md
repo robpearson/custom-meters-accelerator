@@ -7,7 +7,7 @@
 - [Installation](#installation)
 - [Monitoring](#monitoring)
 - [Commercial Marketplace Documentation](#commercial-marketplace-documentation)
-- [AMA Meter Scheduler Overview](#ama-billing-scheduler-overview)
+- [AMA Meter Scheduler Overview](#ama-Meter-scheduler-overview)
 - [Projects](#projects)
 - [Technology and Versions](#technology-and-versions)
 - [Security](#security)
@@ -23,7 +23,7 @@ The Azure Managed Application (AMA) Meter Scheduler is an opensource production-
 
 🚀 **Quick & easy deployment:** Go live in under 15 minutes.​
 
-💲 **Flexible billing:** Surpass the constraints of current Meter features. Enable yearly billing, milestone payments, and handling complex pricing models.​
+💲 **Flexible Meter:** Surpass the constraints of current Meter features. Enable yearly Meter, milestone payments, and handling complex pricing models.​
 
 🛠️ **Design in advance:** Allow partners to design and create price models per plan prior having an active subscription.​
 
@@ -45,7 +45,7 @@ This code is a reference implementation of optional components of a commercial m
 
 ## Stay current with the latest updates!
 
-The AMA Meter Scheduler project team releases regularly releases new versions. Please see the [release notes page](https://github.com/microsoft/azure-app-billing-scheduler/releases) for updates. We recommend keeping up to date with latest releases to stay current on security patches, bug fixes, and new features.
+The AMA Meter Scheduler project team releases regularly releases new versions. Please see the [release notes page](https://github.com/microsoft/azure-app-Meter-scheduler/releases) for updates. We recommend keeping up to date with latest releases to stay current on security patches, bug fixes, and new features.
 
 ## Intended Use
 
@@ -70,7 +70,7 @@ Before using this project, please review the commercial marketplace documentatio
 - [Commercial marketplace documentation](https://docs.microsoft.com/azure/marketplace/). Getting started and top articles
 - [Azure applications in the commercial marketplace](https://learn.microsoft.com/en-us/partner-center/marketplace/azure-app-offer-setup). Overview of the Azure application business policies, plus step-by step offer creation and configuration requirements.
 - [Product Ingestion API for the commercial marketplace](https://learn.microsoft.com/en-us/partner-center/marketplace/product-ingestion-api). API details for Partner Center.
-- [Marketplace metering service API](https://docs.microsoft.com/azure/marketplace/partner-center-portal/marketplace-metering-service-apis). API details for the Marketplace Metering Service that enables event-based billing.
+- [Marketplace metering service API](https://docs.microsoft.com/azure/marketplace/partner-center-portal/marketplace-metering-service-apis). API details for the Marketplace Metering Service that enables event-based Meter.
 
 ## AMA Meter Scheduler Overview
 
@@ -85,7 +85,7 @@ The source `/src` directory contains the following Visual Studio projects.
 | [**Publisher portal - Sample web application**](./src/AdminSite) | Demonstrates how to schedule usage events used in metered Meter transactions, and how to emit these events to the Marketplace Metering Service API. |AdminSite|
 | [**Client data access library**](./src/DataAccess) | Demonstrates how to persiste subscriptions and schedule task, and historical logging for metered usaged submissions. | DataAccess |
 | [**Services client library**](./src/Services) | Contains the services used by the Customer and Publisher portals, including the POCO classes to orchestrate calls to the marketplace APIs on [client library](https://github.com/microsoft/commercial-marketplace-client-dotnet) / database.|Services |
-| [**Billing Engine project**](./src/MeteredTriggerJob) | WebJob Meter engine to submit metered usage. | Meter Engine |
+| [**Meter Engine project**](./src/MeteredTriggerJob) | WebJob Meter engine to submit metered usage. | Meter Engine |
 
 ## Technology and Versions
 

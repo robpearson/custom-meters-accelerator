@@ -25,8 +25,8 @@ chmod +x dotnet-install.sh; `
 ./dotnet-install.sh; `
 $ENV:PATH="$HOME/.dotnet:$ENV:PATH"; `
 dotnet tool install --global dotnet-ef; `
-git clone https://github.com/microsoft/azure-app-billing-scheduler -b main --depth 1; `
-cd ./azure-app-billing-scheduler/Deployment; `
+git clone https://github.com/microsoft/azure-app-meter-scheduler -b main --depth 1; `
+cd ./azure-app-meter-scheduler/Deployment; `
 .\Deploy.ps1 `
  -WebAppNamePrefix "SOME-UNIQUE-STRING" `
  -ResourceGroupForDeployment "SOME-RG-NAME" `

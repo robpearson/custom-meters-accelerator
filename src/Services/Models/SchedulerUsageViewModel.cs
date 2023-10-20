@@ -72,5 +72,5 @@ public class SchedulerUsageViewModel
     public DateTime? NextRunDate { get; set; }
 
     public int TimezoneOffset { get; set; }
-
+    public string Error { get; set; }
 }
