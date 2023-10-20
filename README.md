@@ -49,7 +49,7 @@ The AMA Meter Scheduler project team releases regularly releases new versions. P
 
 ## Intended Use
 
-This project accelerates the AMA offer onboarding experience for those building using metered Meter to submit custom price model. Whether installed and used as-is or customized for your particular requirements, this reference implementation provides all main components required by a commercial marketplace AMA offer.
+This project speed the AMA offer onboarding experience for those building using meters to submit custom price model. Whether installed and used as-is or customized for your particular requirements, this reference implementation provides all main components required by a commercial marketplace AMA offer.
 
 ## Installation
 
@@ -82,7 +82,7 @@ The source `/src` directory contains the following Visual Studio projects.
 
 | Project | Description | Directory Name |
 | --- | --- | --- |
-| [**Publisher portal - Sample web application**](./src/AdminSite) | Demonstrates how to schedule usage events used in metered Meter transactions, and how to emit these events to the Marketplace Metering Service API. |AdminSite|
+| [**Publisher portal - Sample web application**](./src/AdminSite) | Demonstrates how to schedule usage events used in metered transactions, and how to emit these events to the Marketplace Metering Service API. |AdminSite|
 | [**Client data access library**](./src/DataAccess) | Demonstrates how to persiste subscriptions and schedule task, and historical logging for metered usaged submissions. | DataAccess |
 | [**Services client library**](./src/Services) | Contains the services used by the Customer and Publisher portals, including the POCO classes to orchestrate calls to the marketplace APIs on [client library](https://github.com/microsoft/commercial-marketplace-client-dotnet) / database.|Services |
 | [**Meter Engine project**](./src/MeteredTriggerJob) | WebJob Meter engine to submit metered usage. | Meter Engine |
