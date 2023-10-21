@@ -85,7 +85,8 @@ namespace ManagedApplicationScheduler.Services.Services
         
         public PaymentModel GetPaymentID(string id)
         {
-
+            if (string.IsNullOrEmpty(id))
+                return null;
 
             var payment = new PaymentModel();
             var entity = this.paymentRepository.Get(id);
