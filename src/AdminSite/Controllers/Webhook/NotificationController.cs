@@ -49,7 +49,7 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers.Webhook
                 // If provisioning of a marketplace application instance is successful, we persist a Meter entry to be picked up by the chron metric emitting job
                 if (notificationDefinition.EventType == "PUT" && notificationDefinition.ProvisioningState == "Succeeded" && notificationDefinition.BillingDetails?.ResourceUsageId != null)
                 {
-                    this.applicationLogService.AddApplicationLog($"Successful Subscription added {notificationDefinition.ApplicationId} ");
+                    
                     var subscription = new SubscriptionModel
                     {
                         // CosmosDB does not support forward slashes in the id.
@@ -81,8 +81,10 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers.Webhook
                         throw;
                     }
                     subscriptionService.SaveSubscription(subscription);
-                    paymentService.SaveMilestonePayment(subscription);
+                    this.applicationLogService.AddApplicationLog($"Successful Subscription added {notificationDefinition.ApplicationId} ");
 
+                    paymentService.SaveMilestonePayment(subscription);
+                    this.applicationLogService.AddApplicationLog($"Successful ScheduleTasks added {notificationDefinition.ApplicationId} ");
 
                     Console.WriteLine($"Successfully inserted the entry in CosmosDB for the application {notificationDefinition.ApplicationId}");
                     this.applicationLogService.AddApplicationLog($"Successfully inserted the entry in CosmosDB for the application {notificationDefinition.ApplicationId}");
