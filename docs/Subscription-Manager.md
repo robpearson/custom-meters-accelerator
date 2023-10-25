@@ -16,10 +16,10 @@
 The publisher web application is the admin console for the publisher for defining the input fields on the landing page and managing marketplace subscriptions.
 
 ## Partner Center Setup
-1- Azure Application Billing Scheduler will deploy a **Notifaction API endpoint**. The Notification will be added to Azure Application Offer under Plan Technical Configurtation.
+1- Azure Application Meter Scheduler will deploy a **Notifaction API endpoint**. The Notification will be added to Azure Application Offer under Plan Technical Configurtation.
 ![offer notification](./images/offer-notification.png)
 
-2- Azure Application Billing Scheduler will creat an **AAD Application**. The app will be added to Azure application offer Technical Configuration.
+2- Azure Application Meter Scheduler will creat an **AAD Application**. The app will be added to Azure application offer Technical Configuration.
 
 ![offer aad](./images/offer-aad.png)
 

@@ -148,7 +148,7 @@ if (!($ADApplicationID)) {
 	
 		$appCreateRequestBodyJson = @"
 {
-	"displayName" : "$WebAppNamePrefix-meteredBilling",
+	"displayName" : "$WebAppNamePrefix-meteredMeter",
 	"api": 
 	{
 		"requestedAccessTokenVersion" : 2
@@ -190,7 +190,7 @@ if (!($ADApplicationID)) {
 		$ADObjectID = $ADApplication.id
 	
         sleep 5 #this is to give time to AAD to register
-        $ADApplicationSecret = az ad app credential reset --id $ADApplicationID --append --display-name 'AMAMeteredBilling' --years 2 --query password --only-show-errors --output tsv
+        $ADApplicationSecret = az ad app credential reset --id $ADApplicationID --append --display-name 'AMAMeteredMeter' --years 2 --query password --only-show-errors --output tsv
 				
         Write-Host "   🔵 AMA App Registration created."
 		Write-Host "      ➡️ Application ID:" $ADApplicationID  
@@ -315,7 +315,7 @@ Remove-Item -Path ../Publish -recurse -Force
 
 Write-host "✅ If the intallation completed without error complete the folllowing checklist:"
 if ($ISADMTApplicationIDProvided) {  #If provided then show the user where to add the landing page in AAD, otherwise script did this already for the user.
-	Write-host "   🔵 Add The following URLs to the metered billing AAD App Registration in Azure Portal:"
+	Write-host "   🔵 Add The following URLs to the metered Meter AAD App Registration in Azure Portal:"
 	Write-host "      ➡️ https://$WebAppNamePrefix-admin.azurewebsites.net"
 	Write-host "      ➡️ https://$WebAppNamePrefix-admin.azurewebsites.net/"
 	Write-host "      ➡️ https://$WebAppNamePrefix-admin.azurewebsites.net/Home/Index"

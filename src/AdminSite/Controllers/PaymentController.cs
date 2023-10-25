@@ -223,7 +223,7 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
                 paymentFormModel.DimensionsList = existingPayment.DimensionsList;
                 paymentFormModel.PaymentTypeList = existingPayment.PaymentTypeList;
                 paymentFormModel.Quantity = existingPayment.Quantity;
-                paymentFormModel.Error = "Payment already exist! Avoid duplicate Payment in order to avoid duplicate billing!";
+                paymentFormModel.Error = "Payment already exist! Avoid duplicate Payment in order to avoid duplicate meters submission!";
                 return this.View(paymentFormModel);
 
             }

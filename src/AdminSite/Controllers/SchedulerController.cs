@@ -188,7 +188,7 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
                 {
                     // Prepare the lists
                     var existingSchedulerUsageViewModel = PrepareSchedulerUsageViewModel(schedulerUsageViewModel.SelectedSubscription);
-                    existingSchedulerUsageViewModel.Error = "Scheduler Task already exist! Avoid duplicate tasks in order to avoid duplicate billing!";
+                    existingSchedulerUsageViewModel.Error = "Scheduler Task already exist! Avoid duplicate tasks in order to avoid duplicate meters submission!";
                     existingSchedulerUsageViewModel.SelectedDimension = schedulerUsageViewModel.SelectedDimension;
                     existingSchedulerUsageViewModel.SchedulerName = schedulerUsageViewModel.SchedulerName;
                     existingSchedulerUsageViewModel.SelectedSchedulerFrequency = schedulerUsageViewModel.SelectedSchedulerFrequency;

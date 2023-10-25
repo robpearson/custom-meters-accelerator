@@ -1,4 +1,4 @@
-# Azure App Billing Payment Template Manager 
+# Azure App Meter Payment Template Manager 
 Publish can use Payment Template to create payment per plan in advance. When customer subscribe to a plan with payment templates, it will auto generate schedule tasks for this specific subscription.
 
 Currentlty there are two different type of template type

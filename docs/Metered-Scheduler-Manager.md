@@ -1,4 +1,4 @@
-# Azure App Billing Scheduler Manager 
+# Azure App Meter Scheduler Manager 
 Metered Scheduler Manager is a feature where Publisher can schedule **FIX Quantity** metered emiting tasks. The scheduler will monitor these tasks and trigger event based on the scheduled frequency time. Currenty the scheduler support the following time base trigger
 
 1. OneTime

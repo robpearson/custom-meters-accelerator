@@ -58,7 +58,7 @@ public class SchedulerUsageViewModel
     /// <value>
     /// The quantity.
     /// </value>
-    public int Quantity { get; set; }
+    public double Quantity { get; set; }
 
     /// <summary>
     /// Get or set First Run Time
@@ -72,5 +72,5 @@ public class SchedulerUsageViewModel
     public DateTime? NextRunDate { get; set; }
 
     public int TimezoneOffset { get; set; }
-
+    public string Error { get; set; }
 }
