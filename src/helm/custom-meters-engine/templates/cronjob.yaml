@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: marketplace-custom-meters-engine
+  labels:
+    billing: {{ .Values.global.azure.billingIdentifier }}
+spec:
+  failedJobsHistoryLimit: 1
+  schedule: "0 * * * *"
+  successfulJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: {{ .Values.title}}
+            cron: {{.Values.cronJob }}
+        spec:
+          containers:
+          - name: enginejob
+            image: "{{ .Values.global.azure.images.engine.registry }}/{{ .Values.global.azure.images.engine.image }}@{{ .Values.global.azure.images.engine.digest }}"
+            envFrom:
+            - configMapRef:
+                name: azure-compute-values
+          restartPolicy: Never
+

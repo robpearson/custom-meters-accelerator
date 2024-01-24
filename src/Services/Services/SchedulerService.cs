@@ -151,7 +151,16 @@ namespace ManagedApplicationScheduler.Services.Services
         {
             var schedulers = GetAllSchedulersTasks();
 
-            var enabledTasks = schedulers.Where(s => s.Status == SchedulerStatusEnum.Scheduled.ToString()).ToList();
+            var enabledTasks = schedulers.Where(s => s.Status == SchedulerStatusEnum.Scheduled.ToString() && !(s.ResourceUri.Contains("managedclusters"))).ToList();
+
+            return enabledTasks;
+        }
+
+        public List<ScheduledTasksModel> GetEnabledSchedulersTasksBySubscription(string resourceUri)
+        {
+            var schedulers = GetAllSchedulersTasks();
+
+            var enabledTasks = schedulers.Where(s => s.Status == SchedulerStatusEnum.Scheduled.ToString() && s.ResourceUri == resourceUri).ToList();
 
             return enabledTasks;
         }
@@ -190,20 +199,30 @@ namespace ManagedApplicationScheduler.Services.Services
             return tasks.Any();
         
         }
+
+        public string ProcessContainerMeterUsageResult(MeteredUsageResultModel meteredUsageResultModel)
+        {
+            // first update scheduler
+            try
+            {
+                var scheduler = this.GetSchedulerByID(meteredUsageResultModel.ScheduledTaskId);
+
+                if (meteredUsageResultModel.Status == "Accepted")
+                {
+                    scheduler.Status = SchedulerStatusEnum.Completed.ToString();
+                }
+                else
+                {
+                    scheduler.Status = SchedulerStatusEnum.Error.ToString();
+                }
+                this.UpdateScheduler(scheduler);
+            }
+            catch (Exception ex)
+            {
+                return $"Error during saving scheduler task:{ex.Message}";
+            }
+            return "OK";
+        }
     }
 }
 
-/*
- {
-    "id": "b9e40313-2415-4165-b188-c828d9b4cea9",
-    "PartitionKey": "b9e40313-2415-4165-b188-c828d9b4cea9",
-    "Dimension": "key",
-    "Frequency": "OneTime",
-    "NextRunTime": null,
-    "PlanId": "meter1",
-    "Quantity": 1,
-    "ResourceUri": "/subscriptions/bf7adf12-c3a8-426c-9976-29f145eba70f/resourceGroups/msalemsaasws/providers/Microsoft.Solutions/applications/msals",
-    "ScheduledTaskName": "payment-q3-msals",
-    "StartDate": "2023-12-04T00:00:00"   
-}
- */

@@ -10,13 +10,20 @@ namespace ManagedApplicationScheduler.Services.Utilities
 {
     public class AzureAppOfferApi
     {
-        private string apiProduct = "https://api.partner.microsoft.com/v1.0/ingestion/products?$filter=resourceType eq 'AzureApplication' and ExternalIDs/Any(i:i/Type eq 'AzureOfferId' and i/Value eq '%OFFERID%')";
-        private string apiAllProducts = "https://api.partner.microsoft.com/v1.0/ingestion/products?$filter=resourceType eq 'AzureApplication'";
+        private string apiProduct = "https://api.partner.microsoft.com/v1.0/ingestion/products?$filter=resourceType eq '%OFFER-TYPE%' and ExternalIDs/Any(i:i/Type eq 'AzureOfferId' and i/Value eq '%OFFERID%')";
+        private string apiAllProducts = "https://api.partner.microsoft.com/v1.0/ingestion/products?$filter=resourceType eq '%OFFER-TYPE%'";
         private string apiProductVariants = "https://api.partner.microsoft.com/v1.0/ingestion/products/%PRODUCTID%/variants/";
         private string apiProductBranches = "https://api.partner.microsoft.com/v1.0/ingestion/products/%PRODUCTID%/branches/getByModule(module=availability)";
         private string apiProductFeatures = "https://api.partner.microsoft.com/v1.0/ingestion/products/%PRODUCTID%/featureAvailabilities/getByInstanceID(instanceID=%INSTANCEID%)";
         private string token;
+        private string offerType = "AzureApplication";
         private HttpClient httpClient = new HttpClient();
+        public AzureAppOfferApi(string token, string offerType)
+        {
+            this.offerType = offerType;
+            this.token = token;
+            this.httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+        }
         public AzureAppOfferApi(string token)
         {
             this.token = token;
@@ -51,7 +58,7 @@ namespace ManagedApplicationScheduler.Services.Utilities
 
         private async Task<string> getProductIdAsync(string offerId)
         {
-            var url = this.apiProduct.Replace("%OFFERID%", offerId);
+            var url = this.apiProduct.Replace("%OFFER-TYPE%", this.offerType).Replace("%OFFERID%", offerId);
             var response = await httpClient.GetAsync(url).ConfigureAwait(continueOnCapturedContext: false);
 
             var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(continueOnCapturedContext: false);
@@ -188,10 +195,10 @@ namespace ManagedApplicationScheduler.Services.Utilities
 
 
 
-        private async Task<List<ProductValue>> getProductAllAsync()
+        private async Task<List<ProductValue>> getProductAllAsync(string offerType )
         {
             var productlist = new List<ProductValue>();
-            string url = this.apiAllProducts;
+            string url = this.apiAllProducts.Replace("%OFFER-TYPE%", offerType);
             try
             {
                
@@ -227,7 +234,18 @@ namespace ManagedApplicationScheduler.Services.Utilities
 
         public async Task<List<PlanModel>> getProductsPlansAsync()
         {
-            var productList = await getProductAllAsync();
+            // We will catch both Managed App and Container offer plans
+            var productList = await getProductAllAsync(this.offerType);
+            
+            if(this.offerType!= "AzureContainer")
+            {
+                var containerProducts= await getProductAllAsync("AzureContainer");
+                foreach (var product in containerProducts)
+                {
+                    productList.Add(product);
+                }
+            }
+
             var planList = new List<PlanModel>();
             foreach (var item in productList)
             {

@@ -99,20 +99,24 @@ public class SubscriptionService
 
     public SubscriptionModel GetSubscriptionByID(string id)
     {
-        var subscriptionModel = new SubscriptionModel();
         var subscription = this.subscriptionRepository.Get(id);
-        subscriptionModel.PlanId = subscription.PlanId;
-        subscriptionModel.Product = subscription.Product;
-        subscriptionModel.ProvisionState = subscription.ProvisionState;
-        subscriptionModel.ProvisionTime = subscription.ProvisionTime;
-        subscriptionModel.Publisher = subscription.Publisher;
-        subscriptionModel.ResourceUsageId = subscription.ResourceUsageId;
-        subscriptionModel.id = subscription.id;
-        subscriptionModel.SubscriptionStatus = subscription.SubscriptionStatus;
-        subscriptionModel.Version = subscription.Version;
-        subscriptionModel.Dimension = subscription.Dimension;
-        subscriptionModel.ResourceUri= SubscriptionModel.GetResourceUriFromId(id);
-        return subscriptionModel;
+        if (subscription != null)
+        {
+            var subscriptionModel = new SubscriptionModel();
+            subscriptionModel.PlanId = subscription.PlanId;
+            subscriptionModel.Product = subscription.Product;
+            subscriptionModel.ProvisionState = subscription.ProvisionState;
+            subscriptionModel.ProvisionTime = subscription.ProvisionTime;
+            subscriptionModel.Publisher = subscription.Publisher;
+            subscriptionModel.ResourceUsageId = subscription.ResourceUsageId;
+            subscriptionModel.id = subscription.id;
+            subscriptionModel.SubscriptionStatus = subscription.SubscriptionStatus;
+            subscriptionModel.Version = subscription.Version;
+            subscriptionModel.Dimension = subscription.Dimension;
+            subscriptionModel.ResourceUri = SubscriptionModel.GetResourceUriFromId(id);
+            return subscriptionModel;
+        }
+        return null;
     }
 
     public List<SubscriptionModel> GetSubscriptions()

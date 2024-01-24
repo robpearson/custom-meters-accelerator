@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-MeteredSheduler-056E1ACE-28E9-4118-A7A0-3EC540F69C63</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+  </PropertyGroup>
+
+  <ItemGroup>
+	<PackageReference Include="Azure.Identity" Version="1.10.4" />
+	<PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />	  
+  <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />	  
+  <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />	  
+    <ProjectReference Include="..\Services\Services.csproj" />
+  </ItemGroup>
+</Project>

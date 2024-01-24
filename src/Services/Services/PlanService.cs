@@ -101,6 +101,25 @@ namespace ManagedApplicationScheduler.Services.Services
             return offers;
         }
 
+        public string GetDimListByOfferIDByPlanID(string offerId,string planId)
+        {
+            string dims = "";
+            var dimsList = new List<string>();
+
+            var entities = this.PlanRepository.GetAll().Where(x => x.OfferId == offerId && x.PlanId==planId).ToList();
+            foreach (var entity in entities)
+            {
+                dimsList.Add(entity.Dimension);
+            }
+
+            if (dimsList.Count > 0)
+            {
+                return string.Join<string>("|", dimsList);
+            }
+            return dims;
+
+
+        }
 
         public List<PlanModel> GetPlanListByOfferId(string offerId)
         {
