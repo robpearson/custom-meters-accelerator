@@ -1,4 +1,4 @@
-# Managed Application Custom Meters Accelerator
+# Marketplace Meters Accelerator
 
 <!-- no toc -->
 - [Introduction](#introduction)
@@ -17,7 +17,7 @@
 
 ## Introduction
 
-The Azure Managed Application (AMA) Custom Meters Scheduler is an opensource production-ready solution that enables partners to implement and manage advanced Meter models for Azure Marketplace AMA offers.
+Marketplace Meters Accelerator is an opensource production-ready solution that enables partners to implement and manage advanced Meter models for Azure Marketplace AMA offers.
 
 ### Advantages
 

@@ -30,6 +30,7 @@ namespace MeteredSheduler
                         string planId = Environment.GetEnvironmentVariable("PLAN_ID");
                         string applicationId = Environment.GetEnvironmentVariable("EXTENSION_RESOURCE_ID");
                         string webookUri = Environment.GetEnvironmentVariable("WEBHOOK_URI");
+                        string subscriptionKey = Environment.GetEnvironmentVariable("SUBSCRIPTION_KEY");
 
                         Console.WriteLine($"productId is {productId}" );
                         Console.WriteLine($"planId is {planId}" );
@@ -54,6 +55,7 @@ namespace MeteredSheduler
                             notification.Plan = plan;
                             notification.EventType = "PUT";
                             notification.ProvisioningState = "Succeeded";
+                            notification.SubscriptionKey = subscriptionKey;
                             HttpClient client = new HttpClient();
                             using StringContent jsonContent = new( JsonSerializer.Serialize(notification),null,"application/json");
                             var request = new HttpRequestMessage(HttpMethod.Get, webookUri);
@@ -151,6 +153,7 @@ namespace MeteredSheduler
             Console.WriteLine("Getting Token from MSI");
             var resource = "20e940b3-4c77-4b0b-9a53-9e16a1b010a7";
             var clientId = Environment.GetEnvironmentVariable("CLIENT_ID");
+
             Console.WriteLine($"Current clientId: {clientId}");
             var token = "";
             try

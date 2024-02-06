@@ -71,7 +71,8 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers.Webhook
                         ProvisionTime = DateTime.UtcNow,
                         ResourceUsageId = notificationDefinition.BillingDetails.ResourceUsageId,
                         SubscriptionStatus = "Subscribed",
-                        id = SubscriptionModel.GetIdFromResourceUri(notificationDefinition.ApplicationId),
+                        SubscriptionKey = "",
+                        id = Guid.NewGuid().ToString()
                     };
 
                     try
@@ -104,7 +105,7 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers.Webhook
                 {
                     // On successful deletion of a marketplace application instance try to delete a Meter entry in case one was created
                     this.applicationLogService.AddApplicationLog($"Received Delete for Subscription {notificationDefinition.ApplicationId} ");
-                    var subId = SubscriptionModel.GetIdFromResourceUri(notificationDefinition.ApplicationId);
+                    var subId = subscriptionService.GetResourceUriFromId(notificationDefinition.ApplicationId);
                     subscriptionService.DeleteSubscription(subId);
                     Console.WriteLine($"Successfully deleted the entry in CosmosDB for the application {notificationDefinition.ApplicationId}");
                     this.applicationLogService.AddApplicationLog($"Successfully deleted the entry in CosmosDB for the application {notificationDefinition.ApplicationId}");

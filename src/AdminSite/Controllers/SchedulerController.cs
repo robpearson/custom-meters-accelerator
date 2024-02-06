@@ -117,7 +117,7 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
             List<SelectListItem> DimensionsList = new();
             foreach (var item in allActiveMeteredSubscriptions)
             {
-                var sub = item.id.Split("|");
+                var sub = item.ResourceUri.Split("/");
                 SubscriptionList.Add(new SelectListItem()
                 {
                     Text = sub[2] + "|" + sub[8],
@@ -295,7 +295,7 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
                     this.TempData["ShowWelcomeScreen"] = "True";
 
                     subscriptionDetail = this.subscriptionService.GetSubscriptionsViewById(subscriptionId);
-                    subscriptionDetail.meteringUsageResultModels = this.usageResultService.GetUsageBySubscription(SubscriptionModel.GetResourceUriFromId(subscriptionId));
+                    subscriptionDetail.meteringUsageResultModels = this.usageResultService.GetUsageBySubscription(subscriptionDetail.AppId);
                 }
                 else
                 {

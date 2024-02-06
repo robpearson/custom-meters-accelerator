@@ -35,7 +35,7 @@ public class SubscriptionService
 
     public void SaveSubscription(SubscriptionModel subscription)
     {
-        var entity = this.subscriptionRepository.Get(subscription.id);
+        var entity = this.subscriptionRepository.GetAll().Where(s=>s.ResourceUri==subscription.ResourceUri).FirstOrDefault();
         if (entity != null)
         {
             entity.PlanId = subscription.PlanId;
@@ -43,6 +43,12 @@ public class SubscriptionService
             entity.Publisher = subscription.Publisher;
             entity.Version = subscription.Version;
             entity.Dimension = subscription.Dimension;
+            entity.SubscriptionStatus = subscription.SubscriptionStatus;
+            entity.ProvisionState = subscription.ProvisionState;
+            entity.ProvisionTime = subscription.ProvisionTime;
+            entity.ResourceUsageId = subscription.ResourceUsageId;
+            entity.SubscriptionKey = subscription.SubscriptionKey;
+            entity.ResourceUri = subscription.ResourceUri;
             this.subscriptionRepository.Update(entity);
         }
         else
@@ -59,7 +65,10 @@ public class SubscriptionService
                 PartitionKey = subscription.id,
                 SubscriptionStatus = subscription.SubscriptionStatus,
                 Version = subscription.Version,
-                Dimension = subscription.Dimension
+                Dimension = subscription.Dimension,
+                SubscriptionKey = subscription.SubscriptionKey,
+                ResourceUri = subscription.ResourceUri
+
             };
 
              this.subscriptionRepository.Save(entity);
@@ -78,6 +87,8 @@ public class SubscriptionService
         entity.ResourceUsageId = subscription.ResourceUsageId;
         entity.Version = subscription.Version;
         entity.Dimension = subscription.Dimension;
+        entity.ResourceUri = subscription.ResourceUri;
+        entity.SubscriptionKey = subscription.SubscriptionKey;
         entity.SubscriptionStatus = "Unsubscribed";
         this.subscriptionRepository.Update(entity);
     }
@@ -113,7 +124,8 @@ public class SubscriptionService
             subscriptionModel.SubscriptionStatus = subscription.SubscriptionStatus;
             subscriptionModel.Version = subscription.Version;
             subscriptionModel.Dimension = subscription.Dimension;
-            subscriptionModel.ResourceUri = SubscriptionModel.GetResourceUriFromId(id);
+            subscriptionModel.SubscriptionKey = subscription.SubscriptionKey;
+            subscriptionModel.ResourceUri = subscription.ResourceUri;
             return subscriptionModel;
         }
         return null;
@@ -136,8 +148,10 @@ public class SubscriptionService
                 id = entity.id,
                 SubscriptionStatus = entity.SubscriptionStatus,
                 Version = entity.Version,
-                ResourceUri= SubscriptionModel.GetResourceUriFromId(entity.id),
-                Dimension = entity.Dimension
+                ResourceUri= entity.ResourceUri,
+                Dimension = entity.Dimension,
+                SubscriptionKey = entity.SubscriptionKey
+               
             };
             subscriptions.Add(subscriptionModel);
         }
@@ -156,9 +170,9 @@ public class SubscriptionService
             {
                 id = sub.id,
                 Product = sub.Product,
-                AppId = sub.id.Split("|")[8],
+                AppId = sub.ResourceUri,
                 PlanId = sub.PlanId,
-                Subscription = sub.id.Split("|")[2],
+                Subscription = sub.ResourceUri.Split("/")[2],
                 ProvisionState = sub.ProvisionState,
                 SubscriptionStatus = sub.SubscriptionStatus
                 
@@ -176,9 +190,9 @@ public class SubscriptionService
         {
             id = sub.id,
             Product = sub.Product,
-            AppId = sub.id.Split("|")[8],
+            AppId = sub.ResourceUri,
             PlanId = sub.PlanId,
-            Subscription = sub.id.Split("|")[2],
+            Subscription = sub.ResourceUri.Split("/")[2],
             ProvisionState = sub.ProvisionState,
             SubscriptionStatus = sub.SubscriptionStatus
         };
@@ -205,12 +219,58 @@ public class SubscriptionService
                 id = entity.id,
                 SubscriptionStatus = entity.SubscriptionStatus,
                 Version = entity.Version,
-                Dimension = entity.Dimension
+                Dimension = entity.Dimension,
+                ResourceUri = entity.ResourceUri,
+                SubscriptionKey = entity.SubscriptionKey
             };
             subscriptions.Add(subscriptionModel);
         }
-
         return subscriptions;
-
     }
+    public string GetResourceUriFromId(string id)
+    {
+        var subscription = this.subscriptionRepository.Get(id);
+        return subscription.ResourceUri;
+    }
+
+    public string GetIdFromResourceUriFrom(string resourceUri, string productId, string planId)
+    {
+        var subscription = this.subscriptionRepository.GetAll().Where(s => s.ResourceUri == resourceUri && s.PlanId==planId && s.Product==productId).FirstOrDefault();
+        return subscription.ResourceUri;
+    }
+
+    public SubscriptionModel GetSubscriptionByKey(string productId, string planId, string subscriptionKey)
+    {
+        var entity = this.subscriptionRepository.GetAll().Where(s => s.Product == productId && s.PlanId == planId && s.SubscriptionKey == subscriptionKey).FirstOrDefault();
+        if(entity!= null)
+        {
+            var subscriptionModel = new SubscriptionModel
+            {
+                PlanId = entity.PlanId,
+                Product = entity.Product,
+                ProvisionState = entity.ProvisionState,
+                ProvisionTime = entity.ProvisionTime,
+                Publisher = entity.Publisher,
+                ResourceUsageId = entity.ResourceUsageId,
+                id = entity.id,
+                SubscriptionStatus = entity.SubscriptionStatus,
+                Version = entity.Version,
+                Dimension = entity.Dimension,
+                SubscriptionKey = entity.SubscriptionKey,
+                ResourceUri = entity.ResourceUri
+            };
+            return subscriptionModel;
+        }
+
+        return null;
+    }
+
+    public void UpdateSubscriptionResourceUri(string Id, string resourceUri)
+    {
+        var entity = this.subscriptionRepository.Get(Id);
+        entity.ResourceUri = resourceUri;
+        this.subscriptionRepository.Update(entity);
+    }
+
+
 }

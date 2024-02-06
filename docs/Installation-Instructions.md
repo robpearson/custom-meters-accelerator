@@ -70,7 +70,7 @@ The script above will perform the following actions.
 | ADApplicationID | The value should match the value provided for Active Directory Application ID in the Technical Configuration of the Transactable Offer in Partner Center. If value not provided, a new application will be created. |
 | ADApplicationID Secret | The secret for the AAD Application ID. |
 |PC TenantID | The value should match the value provided for Partner Center Tenants |
-| PC ADApplicationID | The value should match the value provided for Partner Center -> User Management -> Managed Application section|
+| PC ADApplicationID | The value should match the value provided for Partner Center -> User Management -> AAD Application section|
 | PC ADApplicationID Secret | The secret for the PC Application ID |
 | LogoURLpng | The url of the company logo image in .png format with a size of 96x96 to be used on the website |
 | LogoURLico | The url of the company logo image in .ico format |

@@ -200,6 +200,16 @@ namespace ManagedApplicationScheduler.Services.Services
         
         }
 
+        public void UpdateSchedulerResourceUri(string ResourceUri, string newResourceUri)
+        {
+            var tasks = this.schedulerRepository.GetAll().Where(s => s.ResourceUri == ResourceUri).ToList();
+            foreach (var task in tasks)
+            {
+                task.ResourceUri = newResourceUri;
+                this.schedulerRepository.Update(task);
+            }
+        }
+
         public string ProcessContainerMeterUsageResult(MeteredUsageResultModel meteredUsageResultModel)
         {
             // first update scheduler

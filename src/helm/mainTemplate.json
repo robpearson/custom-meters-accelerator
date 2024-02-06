@@ -25,7 +25,13 @@
             "metadata": {
                 "description": "App Title"
             }
-        }
+        },
+        "subscriptionKey": {
+            "type": "string",
+            "metadata": {
+                "description": "App Title"
+            }
+        }        
     },
     "variables": {
         "plan-name": "DONOTMODIFY",
@@ -44,7 +50,8 @@
                 "autoUpgradeMinorVersion": true,
                 "releaseTrain": "[variables('releaseTrain')]",
                 "configurationSettings": {
-                    "title": "[parameters('app-title')]"
+                    "title": "[parameters('app-title')]",
+                    "subscriptionKey": "[parameters('subscriptionKey')]"    
                 },
                 "configurationProtectedSettings": {}
             },
@@ -52,6 +59,7 @@
                 "name": "[variables('plan-name')]",
                 "publisher": "[variables('plan-publisher')]",
                 "product": "[variables('plan-offerID')]"
+                
             },
             "scope": "[concat('Microsoft.ContainerService/managedClusters/', parameters('clusterResourceName'))]"
         }

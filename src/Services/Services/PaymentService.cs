@@ -119,7 +119,7 @@ namespace ManagedApplicationScheduler.Services.Services
         }
         public void SaveMilestonePayment(SubscriptionModel subscription)
         {
-            var appName = subscription.id.Split("|")[8];
+            var appName = subscription.ResourceUri.Split("/")[8];
                 var payment = GetPaymentByOfferByPlan(subscription.Product, subscription.PlanId);
                 foreach(var item in payment)
                 {

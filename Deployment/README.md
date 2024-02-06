@@ -12,5 +12,5 @@ The following table shows the database entities
 | Entity | Description |
 | --- | --- |  
 | UsageResult | The request and response against metering service API is stored here.|
-| Subscription | List of Managed Application subscriptions
+| Subscription | List of Managed Application / Container application subscriptions
 | ScheduledTasks| List of all Metered Scheduled task |

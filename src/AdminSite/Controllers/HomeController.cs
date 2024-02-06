@@ -199,9 +199,10 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
                     this.TempData["ShowWelcomeScreen"] = "True";
                     if (ModelState.IsValid)
                     {
-                        subscription.id = SubscriptionModel.GetIdFromResourceUri(subscription.ResourceUri);
                         subscription.SubscriptionStatus = "Subscribed";
                         subscription.ProvisionState = "Succeeded";
+                        subscription.ProvisionTime = DateTime.UtcNow;
+                        subscription.id = Guid.NewGuid().ToString();    
                         this.subscriptionService.SaveSubscription(subscription);
                         this.applicationLogService.AddApplicationLog($"Completed Saving new Subscription Id: {HttpUtility.HtmlEncode(subscription.id)}");
                         return RedirectToAction("Subscriptions");
@@ -313,7 +314,8 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
                     this.TempData["ShowWelcomeScreen"] = "True";
                     if (ModelState.IsValid)
                     {
-                        var schedulerTasks = this.schedulerService.GetSchedulersTasksBySubscription(SubscriptionModel.GetResourceUriFromId(subscriptionId));
+                        var sub = this.subscriptionService.GetSubscriptionByID(subscriptionId);
+                        var schedulerTasks = this.schedulerService.GetSchedulersTasksBySubscription(sub.ResourceUri);
                         if (schedulerTasks.Count > 0)
                         {
                             this.subscriptionService.UpdateSubscriptionStatus(subscriptionId, "Unsubscribed");

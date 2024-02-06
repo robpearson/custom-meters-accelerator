@@ -54,15 +54,9 @@ namespace ManagedApplicationScheduler.Services.Models
         public string ErrorMessage { get; set; }
 
         public string ResourceUri { get;set;}
+        public string SubscriptionKey { get;  set; }
 
-        public static string GetResourceUriFromId(string id)
-        {
-            return id.Replace("|","/",StringComparison.OrdinalIgnoreCase);
-        }
-        public static string GetIdFromResourceUri(string resourcUri)
-        {
-            return resourcUri.Replace("/","|",StringComparison.OrdinalIgnoreCase);
-        }
+
 
     }
 }

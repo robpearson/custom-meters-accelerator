@@ -63,7 +63,7 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers.Webhook
                 // If provisioning of a marketplace application instance is successful, we persist a Meter entry to be picked up by the chron metric emitting job
                 if (notificationDefinition.EventType == "PUT" && notificationDefinition.ProvisioningState == "Succeeded")
                 {
-                    var sub = this.subscriptionService.GetSubscriptionByID(SubscriptionModel.GetIdFromResourceUri(notificationDefinition.ApplicationId));
+                    var sub = this.subscriptionService.GetSubscriptionByKey(notificationDefinition.Plan.Product,notificationDefinition.Plan.Name,notificationDefinition.SubscriptionKey);
                     if (sub is null)
                     {
                         var subscription = new SubscriptionModel
@@ -75,9 +75,9 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers.Webhook
                             ProvisionState = notificationDefinition.ProvisioningState,
                             ProvisionTime = DateTime.UtcNow,
                             SubscriptionStatus = "Subscribed",
-                            id = SubscriptionModel.GetIdFromResourceUri(notificationDefinition.ApplicationId),
+                            SubscriptionKey = notificationDefinition.SubscriptionKey,
+                            id = Guid.NewGuid().ToString()
                         };
-
                         try
                         {
                             this.applicationLogService.AddApplicationLog($"Get dims list for Product {subscription.Product} with plan {subscription.PlanId}");
@@ -104,6 +104,15 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers.Webhook
                         Console.WriteLine($"Successfully inserted the entry in CosmosDB for the application {notificationDefinition.ApplicationId}");
                         this.applicationLogService.AddApplicationLog($"Successfully inserted the entry in CosmosDB for the application {notificationDefinition.ApplicationId}");
                         sub = subscription;
+                    }
+                    else
+                    {
+                        if (sub.ResourceUri != notificationDefinition.ApplicationId)
+                        {
+                            this.subscriptionService.UpdateSubscriptionResourceUri(sub.id, notificationDefinition.ApplicationId);
+                            this.schedulerService.UpdateSchedulerResourceUri(sub.ResourceUri, notificationDefinition.ApplicationId);
+                            sub.ResourceUri = notificationDefinition.ApplicationId;
+                        }
                     }
 
                     return GetScheduledTask(sub);

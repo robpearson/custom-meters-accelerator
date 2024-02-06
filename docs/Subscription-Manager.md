@@ -41,7 +41,7 @@ In case of existing metered subscription before deploying the notification API e
 ![sub add](./images/sub-Add1.png)
 
 Then enter the following information
-1. **Managed App ResourceUri**: This is Managed App resource ID 
+1. **ResourceUri**: This is App resource ID 
 1. **Publisher**: Publisher ID
 1. **Product**: Offer ID
 1. **PlanId**: Offer Plan ID
