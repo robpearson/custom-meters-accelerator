@@ -145,7 +145,7 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers.Webhook
 
                     if (timeDifferentInHours >= 0)
                     {
-                        var msg = $"Scheduled Item Id: {scheduledItem.ScheduledTaskName} will not run as {_nextRunTime} has passed. Please check audit logs if its has run previously.";
+                        var msg = $"Scheduled Item Id: {scheduledItem.ScheduledTaskName} scheduled to be executed";
                         this.applicationLogService.AddApplicationLog(msg);
                         Console.WriteLine(msg);
                         task.Add(scheduledItem);
