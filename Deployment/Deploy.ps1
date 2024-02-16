@@ -258,6 +258,9 @@ $subnetName=$WebAppNamePrefix+"-default"
 $subnetWebName=$WebAppNamePrefix+"-web"
 $privateEndpointName=$WebAppNamePrefix+"-db-pe"
 
+Write-host "   🔵 Resource Group"
+Write-host "      ➡️ Create Resource Group"
+az group create --location $Location --name $ResourceGroupForDeployment --output $azCliOutput
 
 # Create a virtual network and a subnet
 az network vnet create --name $vnetName --resource-group $ResourceGroupForDeployment --location $location --address-prefix 10.0.0.0/16
