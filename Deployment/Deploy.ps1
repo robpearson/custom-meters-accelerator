@@ -253,6 +253,16 @@ Write-host "☁ Deploy Azure Resources"
 #Set-up resource name variables
 $WebAppNameService=$WebAppNamePrefix+"-asp"
 $WebAppNameAdmin=$WebAppNamePrefix+"-admin"
+$vnetName=$WebAppNamePrefix+"-net"
+$subnetName=$WebAppNamePrefix+"-default"
+$subnetWebName=$WebAppNamePrefix+"-web"
+$privateEndpointName=$WebAppNamePrefix+"-db-pe"
+
+
+# Create a virtual network and a subnet
+az network vnet create --name $vnetName --resource-group $ResourceGroupForDeployment --location $location --address-prefix 10.0.0.0/16
+az network vnet subnet create --name $subnetName --resource-group $ResourceGroupForDeployment --vnet-name $vnetName --address-prefixes 10.0.1.0/24
+az network vnet subnet create --name $subnetWebName --resource-group $ResourceGroupForDeployment --vnet-name $vnetName --address-prefixes 10.0.2.0/24
 
 #keep the space at the end of the string - bug in az cli running on windows powershell truncates last char https://github.com/Azure/azure-cli/issues/10066
 $ADApplicationSecretKeyVault="@Microsoft.KeyVault(VaultName=$KeyVault;SecretName=ADApplicationSecret)"
@@ -270,7 +280,11 @@ Write-host "   🔵 CosmosDB Server"
 Write-host "      ➡️ Create Cosmos Server"
 az cosmosdb create --name $CosmosServerName --resource-group $ResourceGroupForDeployment --subscription $currentSubscription
 
+# Create private endpoint
+az network private-endpoint create --name $privateEndpointName --resource-group $ResourceGroupForDeployment --vnet-name $vnetName --subnet $subnetName --private-connection-resource-id $CosmosServerName.id --group-ids sql --connection-name CosmosDBConnection
+
 $Connection=$(az cosmosdb keys list  -g $ResourceGroupForDeployment  -n $CosmosServerName  --type connection-strings --query connectionStrings[0].connectionString --output tsv)
+
 
 Write-host "   🔵 KeyVault"
 Write-host "      ➡️ Create KeyVault"
@@ -308,6 +322,7 @@ az appservice plan create -g $ResourceGroupForDeployment -n $WebAppNameService -
 Write-host "   🔵 Scheduler WebApp"
 Write-host "      ➡️ Create Web App"
 az webapp create -g $ResourceGroupForDeployment -p $WebAppNameService -n $WebAppNameAdmin  --runtime dotnet:6 --output $azCliOutput
+
 Write-host "      ➡️ Assign Identity"
 $WebAppNameAdminId = az webapp identity assign -g $ResourceGroupForDeployment  -n $WebAppNameAdmin --identities [system] --query principalId -o tsv
 Write-host "      ➡️ Setup access to KeyVault"
@@ -325,6 +340,15 @@ Write-host "📜 Deploy Code"
 
 Write-host "   🔵 Deploy Code to Admin Portal"
 az webapp deploy --resource-group $ResourceGroupForDeployment --name $WebAppNameAdmin --src-path "../Publish/AdminSite.zip" --type zip --output $azCliOutput
+
+Write-host "   🔵 Integrate with web"
+az webapp vnet-integration add --name $WebAppNameAdmin --resource-group $ResourceGroupForDeployment --vnet $vnetName --subnet $subnetWebName
+
+Write-host "   🔵 Set KeyVault to selected Subnet"
+az network vnet subnet update --resource-group $ResourceGroupForDeployment --vnet-name $vnetName --name $subnetWebName --service-endpoints "Microsoft.KeyVault"
+
+$subnetid=$(az network vnet subnet show --resource-group $ResourceGroupForDeployment --vnet-name $vnetName --name $subnetWebName --query id --output tsv)
+az keyvault network-rule add --resource-group $ResourceGroupForDeployment --name "selected-network" --subnet $subnetid
 
 
 Write-host "   🔵 Clean up"
