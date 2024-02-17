@@ -277,8 +277,10 @@ $Sig= ([System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes((N
 
 Write-host "   🔵 CosmosDB Server"
 Write-host "      ➡️ Create Cosmos Server"
-$cosmosDbAccount=$(az cosmosdb create --name $CosmosServerName --resource-group $ResourceGroupForDeployment --subscription $currentSubscription)
+az cosmosdb create --name $CosmosServerName --resource-group $ResourceGroupForDeployment --subscription $currentSubscription
 
+# Get Cosmos DB account
+$cosmosDbAccount=$(az cosmosdb show --name $CosmosServerName --resource-group $ResourceGroupForDeployment) | ConvertFrom-Json
 
 # Create private endpoint
 az network private-endpoint create --name $privateEndpointName --resource-group $ResourceGroupForDeployment --vnet-name $vnetName --subnet $subnetName --private-connection-resource-id $cosmosDbAccount.id  --group-ids sql --connection-name CosmosDBConnection
