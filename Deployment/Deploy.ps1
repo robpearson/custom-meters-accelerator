@@ -275,16 +275,13 @@ $DefaultConnectionKeyVault="@Microsoft.KeyVault(VaultName=$KeyVault;SecretName=D
 $Sig= ([System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes((New-Guid))))
 
 
-Write-host "   🔵 Resource Group"
-Write-host "      ➡️ Create Resource Group"
-az group create --location $Location --name $ResourceGroupForDeployment --output $azCliOutput
-
 Write-host "   🔵 CosmosDB Server"
 Write-host "      ➡️ Create Cosmos Server"
-az cosmosdb create --name $CosmosServerName --resource-group $ResourceGroupForDeployment --subscription $currentSubscription
+$cosmosDbAccount=$(az cosmosdb create --name $CosmosServerName --resource-group $ResourceGroupForDeployment --subscription $currentSubscription)
+
 
 # Create private endpoint
-az network private-endpoint create --name $privateEndpointName --resource-group $ResourceGroupForDeployment --vnet-name $vnetName --subnet $subnetName --private-connection-resource-id $CosmosServerName.id --group-ids sql --connection-name CosmosDBConnection
+az network private-endpoint create --name $privateEndpointName --resource-group $ResourceGroupForDeployment --vnet-name $vnetName --subnet $subnetName --private-connection-resource-id $cosmosDbAccount.id  --group-ids sql --connection-name CosmosDBConnection
 
 $Connection=$(az cosmosdb keys list  -g $ResourceGroupForDeployment  -n $CosmosServerName  --type connection-strings --query connectionStrings[0].connectionString --output tsv)
 
