@@ -346,7 +346,11 @@ Write-host "   🔵 Set KeyVault to selected Subnet"
 az network vnet subnet update --resource-group $ResourceGroupForDeployment --vnet-name $vnetName --name $subnetWebName --service-endpoints "Microsoft.KeyVault"
 
 $subnetid=$(az network vnet subnet show --resource-group $ResourceGroupForDeployment --vnet-name $vnetName --name $subnetWebName --query id --output tsv)
-az keyvault network-rule add --resource-group $ResourceGroupForDeployment --name "selected-network" --subnet $subnetid
+az keyvault network-rule add --resource-group $ResourceGroupForDeployment --name $KeyVault --subnet $subnetid
+
+Write-host "   🔵 CosmosDB role assignment"
+
+
 
 
 Write-host "   🔵 Clean up"
