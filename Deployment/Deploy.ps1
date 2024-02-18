@@ -348,11 +348,15 @@ az network vnet subnet update --resource-group $ResourceGroupForDeployment --vne
 $subnetid=$(az network vnet subnet show --resource-group $ResourceGroupForDeployment --vnet-name $vnetName --name $subnetWebName --query id --output tsv)
 az keyvault network-rule add --resource-group $ResourceGroupForDeployment --name $KeyVault --subnet $subnetid
 
+az keyvault update --resource-group $ResourceGroupForDeployment --name $KeyVault --bypass AzureServices
+
+az keyvault update --resource-group $ResourceGroupForDeployment --name $KeyVault --default-action Deny
+
 Write-host "   🔵 CosmosDB role assignment"
 
 # Generate role definition and assignment IDs
-roleDefinitionId=$(az ad sp create --id "sql-role-definition-$WebAppNameAdminId-$cosmosDbAccount" --query objectId -o tsv)
-roleAssignmentId=$(az ad sp create --id "$roleDefinitionId-$WebAppNameAdminId-$cosmosDbAccount" --query objectId -o tsv)
+$roleDefinitionId=$(az ad sp create --id "sql-role-definition-$WebAppNameAdminId-$cosmosDbAccount" --query objectId -o tsv)
+$roleAssignmentId=$(az ad sp create --id "$roleDefinitionId-$WebAppNameAdminId-$cosmosDbAccount" --query objectId -o tsv)
 
 # Create custom role definition
 roleDefinition=$(az cosmosdb sql role definition create --account-name $cosmosDbAccountName --body "{
