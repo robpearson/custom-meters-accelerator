@@ -108,11 +108,7 @@ $KeyVaultApiBody='{"name": "'+$KeyVault+'","type": "Microsoft.KeyVault/vaults"}'
 
 $kv_check=az rest --method post --uri $KeyVaultApiUri --headers 'Content-Type=application/json' --body $KeyVaultApiBody | ConvertFrom-Json
 
-if( $kv_check.reason -eq "AlreadyExists")
-{
-	Throw "🛑 KeyVault name is already in use. Please use different name"
-    Exit
-}
+
 
 
 
