@@ -293,7 +293,7 @@ Write-host "      ➡️ Create KeyVault"
 az keyvault create --name $KeyVault --resource-group $ResourceGroupForDeployment --output $azCliOutput
 Write-host "      ➡️ Add Secrets"
 
-if(!($ADApplicationSecret))
+if($ADApplicationSecret)
 {
 	az keyvault secret set --vault-name $KeyVault  --name ADApplicationSecret --value $ADApplicationSecret --output $azCliOutput
 }
@@ -301,7 +301,7 @@ else {
 	Write-Error "  Single Tenant Secret could not be added to KeyVault since it is blank. Please add it manually."
 }
 
-if(!($PCADApplicationSecret))
+if($PCADApplicationSecret)
 {
 	az keyvault secret set --vault-name $KeyVault  --name PCADApplicationSecret --value $PCADApplicationSecret --output $azCliOutput
 }
