@@ -273,7 +273,7 @@ $Sig= ([System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes((N
 
 Write-host "   🔵 CosmosDB Server"
 Write-host "      ➡️ Create Cosmos Server"
-az cosmosdb create --name $CosmosServerName --resource-group $ResourceGroupForDeployment --subscription $currentSubscription
+az cosmosdb create --name $CosmosServerName --resource-group $ResourceGroupForDeployment --subscription $currentSubscription --assign-identity '[system]'
 
 # Get Cosmos DB account
 $cosmosDbAccount=$(az cosmosdb show --name $CosmosServerName --resource-group $ResourceGroupForDeployment) | ConvertFrom-Json
@@ -305,7 +305,7 @@ else {
 	Write-Error "  PC Secret could not be added to KeyVault since it is blank. Please add it manually."
 }
 
-if(!($Connection))
+if(($Connection))
 {
 	az keyvault secret set --vault-name $KeyVault  --name DefaultConnection --value $Connection --output $azCliOutput
 }
