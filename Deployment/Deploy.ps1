@@ -355,11 +355,11 @@ az keyvault update --resource-group $ResourceGroupForDeployment --name $KeyVault
 Write-host "   🔵 CosmosDB role assignment"
 
 # Generate role definition and assignment IDs
-$roleDefinitionId== guid('sql-role-definition-', $WebAppNameAdminId, $cosmosDbAccount.id)
-$roleAssignmentId = guid($roleDefinitionId, $WebAppNameAdminId, $cosmosDbAccount.id)
+$roleDefinitionId = New-Guid
+$roleAssignmentId = New-Guid
 
 # Create custom role definition
-az cosmosdb sql role definition create --account-name $cosmosDbAccountName --body "{
+az cosmosdb sql role definition create --account-name $cosmosDbAccount  --resource-group $ResourceGroupForDeployment --body "{
 	'Id': '$roleDefinitionId',
 	'RoleName': 'AdminSite Read Write Role',
 	'Type': 'CustomRole',
@@ -371,7 +371,7 @@ az cosmosdb sql role definition create --account-name $cosmosDbAccountName --bod
   }"
   
   # Create role assignment
-  az cosmosdb sql role assignment create --account-name $cosmosDbAccountName --body "{
+  az cosmosdb sql role assignment create --account-name $cosmosDbAccount --resource-group $ResourceGroupForDeployment --body "{
 	'Id': '$roleAssignmentId',
 	'RoleDefinitionId': '$roleDefinitionId',
 	'Scope': '$cosmosDbAccount',
