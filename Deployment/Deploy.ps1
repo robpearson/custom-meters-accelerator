@@ -350,8 +350,29 @@ az keyvault network-rule add --resource-group $ResourceGroupForDeployment --name
 
 Write-host "   🔵 CosmosDB role assignment"
 
+# Generate role definition and assignment IDs
+roleDefinitionId=$(az ad sp create --id "sql-role-definition-$WebAppNameAdminId-$cosmosDbAccount" --query objectId -o tsv)
+roleAssignmentId=$(az ad sp create --id "$roleDefinitionId-$WebAppNameAdminId-$cosmosDbAccount" --query objectId -o tsv)
 
-
+# Create custom role definition
+roleDefinition=$(az cosmosdb sql role definition create --account-name $cosmosDbAccountName --body "{
+	'Id': '$roleDefinitionId',
+	'RoleName': 'Function Read Write Role',
+	'Type': 'CustomRole',
+	'AssignableScopes': ['$cosmosDbAccount'],
+	'DataActions': [
+	  'Microsoft.DocumentDB/databaseAccounts/readMetadata',
+	  'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*'
+	]
+  }")
+  
+  # Create role assignment
+  az cosmosdb sql role assignment create --account-name $cosmosDbAccountName --body "{
+	'Id': '$roleAssignmentId',
+	'RoleDefinitionId': '$roleDefinitionId',
+	'Scope': '$cosmosDbAccount',
+	'PrincipalId': '$WebAppNameAdminId'
+  }"
 
 Write-host "   🔵 Clean up"
 Remove-Item -Path ../Publish -recurse -Force
