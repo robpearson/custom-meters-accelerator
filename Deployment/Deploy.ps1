@@ -358,25 +358,26 @@ Write-host "   🔵 CosmosDB role assignment"
 $roleDefinitionId = New-Guid
 $roleAssignmentId = New-Guid
 
-# Create custom role definition
-az cosmosdb sql role definition create --account-name $cosmosDbAccount  --resource-group $ResourceGroupForDeployment --body "{
-	'Id': '$roleDefinitionId',
-	'RoleName': 'AdminSite Read Write Role',
-	'Type': 'CustomRole',
-	'AssignableScopes': ['$cosmosDbAccount'],
-	'DataActions': [
-	  'Microsoft.DocumentDB/databaseAccounts/readMetadata',
-	  'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*'
+$body= @"
+{
+	"Id" : "$roleDefinitionId",
+	"RoleName" : "AdminSite Read Write",
+	"Type" : "CustomRole",
+	"AssignableScopes" : ["/"],
+	"DataActions" : [
+		"Microsoft.DocumentDB/databaseAccounts/readMetadata",
+		"Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*"
 	]
-  }"
-  
+
+}
+"@
+
+# Create custom role definition
+az cosmosdb sql role definition create --account-name $CosmosServerName  --resource-group $ResourceGroupForDeployment --body $body
+
   # Create role assignment
-  az cosmosdb sql role assignment create --account-name $cosmosDbAccount --resource-group $ResourceGroupForDeployment --body "{
-	'Id': '$roleAssignmentId',
-	'RoleDefinitionId': '$roleDefinitionId',
-	'Scope': '$cosmosDbAccount',
-	'PrincipalId': '$WebAppNameAdminId'
-  }"
+az cosmosdb sql role assignment create --account-name $CosmosServerName --resource-group $ResourceGroupForDeployment  --role-assignment-id $roleAssignmentId  --role-definition-id $roleDefinitionId   --scope $cosmosDbAccount.id   --principal-id $WebAppNameAdminId
+
 
 Write-host "   🔵 Clean up"
 Remove-Item -Path ../Publish -recurse -Force
