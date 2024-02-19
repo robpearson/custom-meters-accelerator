@@ -109,7 +109,19 @@ $KeyVaultApiBody='{"name": "'+$KeyVault+'","type": "Microsoft.KeyVault/vaults"}'
 $kv_check=az rest --method post --uri $KeyVaultApiUri --headers 'Content-Type=application/json' --body $KeyVaultApiBody | ConvertFrom-Json
 
 
-
+if( $kv_check.reason -eq "AlreadyExists")
+{
+	Write-Host ""
+	Write-Host "🛑 KeyVault name "  -NoNewline -ForegroundColor Red
+	Write-Host "$KeyVault"  -NoNewline -ForegroundColor Red -BackgroundColor Yellow
+	Write-Host " already exists." -ForegroundColor Red
+	Write-Host "To Purge KeyVault please use the following doc:"
+	Write-Host "https://learn.microsoft.com/en-us/cli/azure/keyvault?view=azure-cli-latest#az-keyvault-purge."
+	Write-Host "You could use new KeyVault name by using parameter" -NoNewline 
+	Write-Host " -KeyVault"  -ForegroundColor Green
+ 
+	Read-Host -Prompt "Press any key to continue or CTRL+C to quit" | Out-Null
+}
 
 
 #region Dowloading assets if provided
@@ -253,7 +265,7 @@ $vnetName=$WebAppNamePrefix+"-net"
 $subnetName=$WebAppNamePrefix+"-default"
 $subnetWebName=$WebAppNamePrefix+"-web"
 $privateEndpointName=$WebAppNamePrefix+"-db-pe"
-
+$cosmosDbAccountEndPoint="https://$CosmosServerName.documents.azure.com:443/"
 Write-host "   🔵 Resource Group"
 Write-host "      ➡️ Create Resource Group"
 az group create --location $Location --name $ResourceGroupForDeployment --output $azCliOutput
@@ -327,8 +339,7 @@ Write-host "      ➡️ Setup access to KeyVault"
 az keyvault set-policy --name $KeyVault  --object-id $WebAppNameAdminId --secret-permissions get list --key-permissions get list --output $azCliOutput
 Write-host "      ➡️ Set Configuration"
 az webapp config connection-string set -g $ResourceGroupForDeployment -n $WebAppNameAdmin -t SQLAzure --output $azCliOutput --settings DefaultConnection=$DefaultConnectionKeyVault 
-az webapp config appsettings set -g $ResourceGroupForDeployment  -n $WebAppNameAdmin --output $azCliOutput --settings AdAuthenticationEndPoint=https://login.microsoftonline.com/ KnownUsers=$PublisherAdminUsers Marketplace_Uri=https://marketplaceapi.microsoft.com/api/usageEvent?api-version=2018-08-31 GrantType=client_credentials ClientId=$ADApplicationID ClientSecret=$ADApplicationSecretKeyVault TenantId=$TenantID Scope=20e940b3-4c77-4b0b-9a53-9e16a1b010a7/.default CosmoDatabase=Applications PC_ClientId=$PCADApplicationID PC_ClientSecret=$PCADApplicationSecretKeyVault PC_TenantId=$PCTenantID PC_Scope=https://api.partner.microsoft.com/.default Signature=$Sig AMAApiConfiguration_CodeHash=$AMAApiConfiguration_CodeHash
-
+az webapp config appsettings set -g $ResourceGroupForDeployment  -n $WebAppNameAdmin --output $azCliOutput --settings AdAuthenticationEndPoint=https://login.microsoftonline.com/ KnownUsers=$PublisherAdminUsers Marketplace_Uri=https://marketplaceapi.microsoft.com/api/usageEvent?api-version=2018-08-31 GrantType=client_credentials ClientId=$ADApplicationID ClientSecret=$ADApplicationSecretKeyVault TenantId=$TenantID Scope=20e940b3-4c77-4b0b-9a53-9e16a1b010a7/.default CosmoDatabase=Applications PC_ClientId=$PCADApplicationID PC_ClientSecret=$PCADApplicationSecretKeyVault PC_TenantId=$PCTenantID PC_Scope=https://api.partner.microsoft.com/.default Signature=$Sig AMAApiConfiguration_CodeHash=$AMAApiConfiguration_CodeHash CosmosDbEndpoint=cosmosDbAccountEndPoint
 az webapp config set -g $ResourceGroupForDeployment -n $WebAppNameAdmin --always-on true  --output $azCliOutput
 
 #endregion

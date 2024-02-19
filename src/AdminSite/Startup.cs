@@ -73,7 +73,9 @@ public class Startup
             PC_ClientSecret = this.Configuration["PC_ClientSecret"],
             PC_Scope = this.Configuration["PC_Scope"],
             Scope = this.Configuration["Scope"],
-            Signature = this.Configuration["Signature"]
+            Signature = this.Configuration["Signature"],
+            CosmoDbEndPoint = this.Configuration["CosmoDbEndPoint"]
+            
             
         };
         if (!config.AdAuthenticationEndPoint.EndsWith("/",StringComparison.OrdinalIgnoreCase))
@@ -120,7 +122,7 @@ public class Startup
             .AddSingleton<KnownUsersModel>(knownUsers);
 
         services
-         .AddDbContext<CosmosDbContext>(options => options.UseCosmos(this.Configuration.GetConnectionString("DefaultConnection"), config.DataBaseName));
+         .AddDbContext<CosmosDbContext>(options => options.UseCosmos(config.CosmoDbEndPoint, config.DataBaseName));
         services.AddDistributedMemoryCache();
         services.AddSession(options =>
         {

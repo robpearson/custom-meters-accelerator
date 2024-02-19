@@ -73,4 +73,8 @@ public class ManagedAppClientConfiguration
     public string Marketplace_Uri { get; set; }
 
     public string Signature { get; set; }
+
+    
+
+    public string CosmoDbEndPoint { get; set; }
 }
