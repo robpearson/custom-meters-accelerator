@@ -25,8 +25,8 @@ chmod +x dotnet-install.sh; `
 ./dotnet-install.sh; `
 $ENV:PATH="$HOME/.dotnet:$ENV:PATH"; `
 dotnet tool install --global dotnet-ef; `
-git clone https://github.com/microsoft/azure-app-meter-scheduler -b main --depth 1; `
-cd ./azure-app-meter-scheduler/Deployment; `
+git clone https://github.com/microsoft/custom-meters-accelerator  -b main --depth 1; `
+cd ./custom-meters-accelerator/Deployment; `
 .\Deploy.ps1 `
  -WebAppNamePrefix "SOME-UNIQUE-STRING" `
  -ResourceGroupForDeployment "SOME-RG-NAME" `
@@ -70,7 +70,7 @@ The script above will perform the following actions.
 | ADApplicationID | The value should match the value provided for Active Directory Application ID in the Technical Configuration of the Transactable Offer in Partner Center. If value not provided, a new application will be created. |
 | ADApplicationID Secret | The secret for the AAD Application ID. |
 |PC TenantID | The value should match the value provided for Partner Center Tenants |
-| PC ADApplicationID | The value should match the value provided for Partner Center -> User Management -> Managed Application section|
+| PC ADApplicationID | The value should match the value provided for Partner Center -> User Management -> AAD Application section|
 | PC ADApplicationID Secret | The secret for the PC Application ID |
 | LogoURLpng | The url of the company logo image in .png format with a size of 96x96 to be used on the website |
 | LogoURLico | The url of the company logo image in .ico format |

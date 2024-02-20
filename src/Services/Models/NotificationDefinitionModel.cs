@@ -36,5 +36,7 @@ namespace ManagedApplicationScheduler.Services.Models
         /// </summary>
         [JsonProperty(Required = Required.Default)]
         public BillingDetailsDefinitionModel BillingDetails { get; set; }
+
+        public string SubscriptionKey { get; set; }
     }
 }

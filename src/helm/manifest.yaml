@@ -1,0 +1,19 @@
+applicationName: com.nonmicrosoft.custommetersengine
+publisher: "Contoso Test Publisher"
+description: "A test package for the marketplace CNAB structure with existing cluster only."
+version: 20.0.1 #Must be semver
+restrictions:
+  minCores: 4
+  minNodes: 1
+  minKubernetesVersion: 1.21
+  requireGpuNodes: False
+  openShiftAllowed: True
+  nodeType: Linux
+  newClusterRequired: False
+helmChart: "./custom-meters-engine"
+clusterArmTemplate: "./mainTemplate.json"
+uiDefinition: "./createUIDefinition.json"
+registryServer: ""
+extensionRegistrationParameters:
+  defaultScope: "cluster"
+  namespace: "contoso"

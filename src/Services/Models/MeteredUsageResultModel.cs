@@ -86,6 +86,7 @@ public class MeteredUsageResultModel
     public string Message { get; set; }
 
     public string ScheduledTaskName { get; set; }
+    public string ScheduledTaskId { get; set; }
     public string id { get; set; }
 
 }

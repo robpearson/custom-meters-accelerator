@@ -43,6 +43,7 @@ namespace ManagedApplicationScheduler.DataAccess.Services
             return context.Subscription.Where(s => s.id == id).ToList().FirstOrDefault();
         }
 
+
         /// <summary>
         /// Insert new record or Update existing record in Schedule Management
         /// </summary>

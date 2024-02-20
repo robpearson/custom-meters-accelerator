@@ -160,6 +160,7 @@ public class Executor
             }
 
             meteringUsageResult.ScheduledTaskName = item.ScheduledTaskName;
+            meteringUsageResult.ScheduledTaskId = item.id;
             UpdateSchedulerItem(item,
                 meteringUsageResult, responseBody);
         }

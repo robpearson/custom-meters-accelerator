@@ -23,13 +23,23 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers.Webhook
         private readonly SubscriptionService subscriptionService;
         private readonly ApplicationLogService applicationLogService;
         private readonly PaymentService paymentService;
-        public NotificationController(ManagedAppClientConfiguration config, ISubscriptionsRepository subscriptionsRepository, IApplicationLogRepository applicationLogRepository,IPaymentRepository paymentRepository, IScheduledTasksRepository scheduledTasksRepository)
+        private readonly PlanService planService;
+        public NotificationController(ManagedAppClientConfiguration config, ISubscriptionsRepository subscriptionsRepository, IApplicationLogRepository applicationLogRepository,IPaymentRepository paymentRepository, IScheduledTasksRepository scheduledTasksRepository, IPlanRepository planRepository)
         {
             subscriptionService = new SubscriptionService(subscriptionsRepository);
             this.config = config;
             this.applicationLogService = new ApplicationLogService(applicationLogRepository);
             this.paymentService = new PaymentService(paymentRepository, scheduledTasksRepository);
+            this.planService = new PlanService(planRepository);
             
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<IActionResult> GetAsync(string sig)
+        {
+            return Ok("Custom Meters Accelerator");
+
         }
         [AllowAnonymous]
         [HttpPost]
@@ -43,13 +53,12 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers.Webhook
 
             if (config.Signature == sig)
             {
-                var creds = new ClientSecretCredential(config.PC_TenantId, config.PC_ClientID, config.PC_ClientSecret);
-                var result = await creds.GetTokenAsync(new Azure.Core.TokenRequestContext(new string[] { config.PC_Scope }), System.Threading.CancellationToken.None).ConfigureAwait(false);
-                var token = result.Token;
+                //var creds = new ClientSecretCredential(config.PC_TenantId, config.PC_ClientID, config.PC_ClientSecret);
+                //var result = await creds.GetTokenAsync(new Azure.Core.TokenRequestContext(new string[] { config.PC_Scope }), System.Threading.CancellationToken.None).ConfigureAwait(false);
+                //var token = result.Token;
                 // If provisioning of a marketplace application instance is successful, we persist a Meter entry to be picked up by the chron metric emitting job
                 if (notificationDefinition.EventType == "PUT" && notificationDefinition.ProvisioningState == "Succeeded" && notificationDefinition.BillingDetails?.ResourceUsageId != null)
                 {
-                    
                     var subscription = new SubscriptionModel
                     {
                         // CosmosDB does not support forward slashes in the id.
@@ -62,14 +71,17 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers.Webhook
                         ProvisionTime = DateTime.UtcNow,
                         ResourceUsageId = notificationDefinition.BillingDetails.ResourceUsageId,
                         SubscriptionStatus = "Subscribed",
-                        id = SubscriptionModel.GetIdFromResourceUri(notificationDefinition.ApplicationId),
+                        SubscriptionKey = "",
+                        id = Guid.NewGuid().ToString()
                     };
 
                     try
                     {
                         this.applicationLogService.AddApplicationLog($"Get dims list for Product {subscription.Product} with plan {subscription.PlanId}");
-                        var azureOfferApi = new AzureAppOfferApi(token);
-                        subscription.Dimension = await azureOfferApi.getProductDims(subscription.Product, subscription.PlanId).ConfigureAwait(false);
+                        //var azureOfferApi = new AzureAppOfferApi(token, "AzureApplication");
+                        //subscription.Dimension = await azureOfferApi.getProductDims(subscription.Product, subscription.PlanId).ConfigureAwait(false);
+                        subscription.Dimension = this.planService.GetDimListByOfferIDByPlanID(subscription.Product, subscription.PlanId);
+
 
                         this.applicationLogService.AddApplicationLog($"Found dims : {subscription.Dimension}");
                     }
@@ -93,7 +105,7 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers.Webhook
                 {
                     // On successful deletion of a marketplace application instance try to delete a Meter entry in case one was created
                     this.applicationLogService.AddApplicationLog($"Received Delete for Subscription {notificationDefinition.ApplicationId} ");
-                    var subId = SubscriptionModel.GetIdFromResourceUri(notificationDefinition.ApplicationId);
+                    var subId = subscriptionService.GetResourceUriFromId(notificationDefinition.ApplicationId);
                     subscriptionService.DeleteSubscription(subId);
                     Console.WriteLine($"Successfully deleted the entry in CosmosDB for the application {notificationDefinition.ApplicationId}");
                     this.applicationLogService.AddApplicationLog($"Successfully deleted the entry in CosmosDB for the application {notificationDefinition.ApplicationId}");
