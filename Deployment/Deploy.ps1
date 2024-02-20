@@ -354,6 +354,9 @@ Write-host "   🔵 Integrate with web"
 az webapp vnet-integration add --name $WebAppNameAdmin --resource-group $ResourceGroupForDeployment --vnet $vnetName --subnet $subnetWebName
 
 Write-host "   🔵 Set KeyVault to selected Subnet"
+
+az keyvault set-policy --name $KeyVault  --object-id $WebAppNameAdminId --secret-permissions get list --key-permissions get list --output $azCliOutput
+
 az network vnet subnet update --resource-group $ResourceGroupForDeployment --vnet-name $vnetName --name $subnetWebName --service-endpoints "Microsoft.KeyVault"
 
 $subnetid=$(az network vnet subnet show --resource-group $ResourceGroupForDeployment --vnet-name $vnetName --name $subnetWebName --query id --output tsv)
