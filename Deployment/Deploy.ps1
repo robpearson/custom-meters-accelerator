@@ -335,8 +335,7 @@ az webapp create -g $ResourceGroupForDeployment -p $WebAppNameService -n $WebApp
 
 Write-host "      ➡️ Assign Identity"
 $WebAppNameAdminId = az webapp identity assign -g $ResourceGroupForDeployment  -n $WebAppNameAdmin --identities [system] --query principalId -o tsv
-Write-host "      ➡️ Setup access to KeyVault"
-az keyvault set-policy --name $KeyVault  --object-id $WebAppNameAdminId --secret-permissions get list --key-permissions get list --output $azCliOutput
+
 Write-host "      ➡️ Set Configuration"
 az webapp config connection-string set -g $ResourceGroupForDeployment -n $WebAppNameAdmin -t SQLAzure --output $azCliOutput --settings DefaultConnection=$DefaultConnectionKeyVault 
 az webapp config appsettings set -g $ResourceGroupForDeployment  -n $WebAppNameAdmin --output $azCliOutput --settings AdAuthenticationEndPoint=https://login.microsoftonline.com/ KnownUsers=$PublisherAdminUsers Marketplace_Uri=https://marketplaceapi.microsoft.com/api/usageEvent?api-version=2018-08-31 GrantType=client_credentials ClientId=$ADApplicationID ClientSecret=$ADApplicationSecretKeyVault TenantId=$TenantID Scope=20e940b3-4c77-4b0b-9a53-9e16a1b010a7/.default CosmoDatabase=Applications PC_ClientId=$PCADApplicationID PC_ClientSecret=$PCADApplicationSecretKeyVault PC_TenantId=$PCTenantID PC_Scope=https://api.partner.microsoft.com/.default Signature=$Sig AMAApiConfiguration_CodeHash=$AMAApiConfiguration_CodeHash CosmosDbEndpoint=cosmosDbAccountEndPoint
@@ -355,7 +354,7 @@ az webapp vnet-integration add --name $WebAppNameAdmin --resource-group $Resourc
 
 Write-host "   🔵 Set KeyVault to selected Subnet"
 
-az keyvault set-policy --name $KeyVault  --object-id $WebAppNameAdminId --secret-permissions get list --key-permissions get list --output $azCliOutput
+az keyvault set-policy --name $KeyVault  --resource-group $ResourceGroupForDeployment --subscription $AzureSubscriptionID --object-id $WebAppNameAdminId --secret-permissions get list --key-permissions get list --output $azCliOutput
 
 az network vnet subnet update --resource-group $ResourceGroupForDeployment --vnet-name $vnetName --name $subnetWebName --service-endpoints "Microsoft.KeyVault"
 
