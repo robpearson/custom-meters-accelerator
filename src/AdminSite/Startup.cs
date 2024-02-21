@@ -122,7 +122,7 @@ public class Startup
             .AddSingleton<KnownUsersModel>(knownUsers);
 
         services
-         .AddDbContext<CosmosDbContext>(options => options.UseCosmos(config.CosmoDbEndPoint, config.DataBaseName));
+         .AddDbContext<CosmosDbContext>(options => options.UseCosmos(this.Configuration.GetConnectionString("DefaultConnection"), config.DataBaseName));
         services.AddDistributedMemoryCache();
         services.AddSession(options =>
         {
