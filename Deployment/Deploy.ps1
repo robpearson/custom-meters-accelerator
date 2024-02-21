@@ -259,13 +259,15 @@ if (!(Test-Path '../Publish')) {
 Write-host "☁ Deploy Azure Resources"
 
 #Set-up resource name variables
-$WebAppNameService=$WebAppNamePrefix+"-asp"
-$WebAppNameAdmin=$WebAppNamePrefix+"-admin"
+$webAppNameService=$WebAppNamePrefix+"-asp"
+$webAppNameAdmin=$WebAppNamePrefix+"-admin"
 $vnetName=$WebAppNamePrefix+"-net"
 $subnetName=$WebAppNamePrefix+"-default"
 $subnetWebName=$WebAppNamePrefix+"-web"
 $privateEndpointName=$WebAppNamePrefix+"-db-pe"
-$cosmosDbAccountEndPoint="https://$CosmosServerName.documents.azure.com:443/"
+$connection="AccountEndpoint=https://$CosmosServerName.privatelink.documents.azure.com:443/"
+$zoneName="privatelink.documents.azure.com"
+
 Write-host "   🔵 Resource Group"
 Write-host "      ➡️ Create Resource Group"
 az group create --location $Location --name $ResourceGroupForDeployment --output $azCliOutput
@@ -293,7 +295,15 @@ $cosmosDbAccount=$(az cosmosdb show --name $CosmosServerName --resource-group $R
 # Create private endpoint
 az network private-endpoint create --name $privateEndpointName --resource-group $ResourceGroupForDeployment --vnet-name $vnetName --subnet $subnetName --private-connection-resource-id $cosmosDbAccount.id  --group-ids sql --connection-name CosmosDBConnection
 
-$Connection=$(az cosmosdb keys list  -g $ResourceGroupForDeployment  -n $CosmosServerName  --type connection-strings --query connectionStrings[0].connectionString --output tsv)
+#Zone name differs based on the API type and group ID you are using. 
+
+
+az network private-dns zone create --resource-group $ResourceGroupForDeployment --name  $zoneName
+
+az network private-dns link vnet create --resource-group $ResourceGroupForDeployment  --zone-name  $zoneName  --name "mycosmosdbLink"   --virtual-network $vnetName  --registration-enabled false 
+
+#Create a DNS zone group
+az network private-endpoint dns-zone-group create  --resource-group $ResourceGroupForDeployment  --endpoint-name $PrivateEndpointName  --name "myCosmosdbGroup"  --private-dns-zone $zoneName  --zone-name "myCosmosdbZone"
 
 
 Write-host "   🔵 KeyVault"
@@ -327,19 +337,19 @@ else {
 
 Write-host "   🔵 App Service Plan"
 Write-host "      ➡️ Create App Service Plan"
-az appservice plan create -g $ResourceGroupForDeployment -n $WebAppNameService --sku B1 --output $azCliOutput
+az appservice plan create -g $ResourceGroupForDeployment -n $webAppNameService --sku B1 --output $azCliOutput
 
 Write-host "   🔵 Scheduler WebApp"
 Write-host "      ➡️ Create Web App"
-az webapp create -g $ResourceGroupForDeployment -p $WebAppNameService -n $WebAppNameAdmin  --runtime dotnet:6 --output $azCliOutput
+az webapp create -g $ResourceGroupForDeployment -p $webAppNameService -n $webAppNameAdmin  --runtime dotnet:6 --output $azCliOutput
 
 Write-host "      ➡️ Assign Identity"
-$WebAppNameAdminId = az webapp identity assign -g $ResourceGroupForDeployment  -n $WebAppNameAdmin --identities [system] --query principalId -o tsv
+$webAppNameAdminId = az webapp identity assign -g $ResourceGroupForDeployment  -n $webAppNameAdmin --identities [system] --query principalId -o tsv
 
 Write-host "      ➡️ Set Configuration"
-az webapp config connection-string set -g $ResourceGroupForDeployment -n $WebAppNameAdmin -t SQLAzure --output $azCliOutput --settings DefaultConnection=$DefaultConnectionKeyVault 
-az webapp config appsettings set -g $ResourceGroupForDeployment  -n $WebAppNameAdmin --output $azCliOutput --settings AdAuthenticationEndPoint=https://login.microsoftonline.com/ KnownUsers=$PublisherAdminUsers Marketplace_Uri=https://marketplaceapi.microsoft.com/api/usageEvent?api-version=2018-08-31 GrantType=client_credentials ClientId=$ADApplicationID ClientSecret=$ADApplicationSecretKeyVault TenantId=$TenantID Scope=20e940b3-4c77-4b0b-9a53-9e16a1b010a7/.default CosmoDatabase=Applications PC_ClientId=$PCADApplicationID PC_ClientSecret=$PCADApplicationSecretKeyVault PC_TenantId=$PCTenantID PC_Scope=https://api.partner.microsoft.com/.default Signature=$Sig AMAApiConfiguration_CodeHash=$AMAApiConfiguration_CodeHash CosmosDbEndpoint=cosmosDbAccountEndPoint
-az webapp config set -g $ResourceGroupForDeployment -n $WebAppNameAdmin --always-on true  --output $azCliOutput
+az webapp config connection-string set -g $ResourceGroupForDeployment -n $webAppNameAdmin -t SQLAzure --output $azCliOutput --settings DefaultConnection=$DefaultConnectionKeyVault 
+az webapp config appsettings set -g $ResourceGroupForDeployment  -n $webAppNameAdmin --output $azCliOutput --settings AdAuthenticationEndPoint=https://login.microsoftonline.com/ KnownUsers=$PublisherAdminUsers Marketplace_Uri=https://marketplaceapi.microsoft.com/api/usageEvent?api-version=2018-08-31 GrantType=client_credentials ClientId=$ADApplicationID ClientSecret=$ADApplicationSecretKeyVault TenantId=$TenantID Scope=20e940b3-4c77-4b0b-9a53-9e16a1b010a7/.default CosmoDatabase=Applications PC_ClientId=$PCADApplicationID PC_ClientSecret=$PCADApplicationSecretKeyVault PC_TenantId=$PCTenantID PC_Scope=https://api.partner.microsoft.com/.default Signature=$Sig AMAApiConfiguration_CodeHash=$AMAApiConfiguration_CodeHash CosmosDbEndpoint=cosmosDbAccountEndPoint
+az webapp config set -g $ResourceGroupForDeployment -n $webAppNameAdmin --always-on true  --output $azCliOutput
 
 #endregion
 
@@ -347,14 +357,14 @@ az webapp config set -g $ResourceGroupForDeployment -n $WebAppNameAdmin --always
 Write-host "📜 Deploy Code"
 
 Write-host "   🔵 Deploy Code to Admin Portal"
-az webapp deploy --resource-group $ResourceGroupForDeployment --name $WebAppNameAdmin --src-path "../Publish/AdminSite.zip" --type zip --output $azCliOutput
+az webapp deploy --resource-group $ResourceGroupForDeployment --name $webAppNameAdmin --src-path "../Publish/AdminSite.zip" --type zip --output $azCliOutput
 
 Write-host "   🔵 Integrate with web"
-az webapp vnet-integration add --name $WebAppNameAdmin --resource-group $ResourceGroupForDeployment --vnet $vnetName --subnet $subnetWebName
+az webapp vnet-integration add --name $webAppNameAdmin --resource-group $ResourceGroupForDeployment --vnet $vnetName --subnet $subnetWebName
 
 Write-host "   🔵 Set KeyVault to selected Subnet"
 
-az keyvault set-policy --name $KeyVault  --resource-group $ResourceGroupForDeployment --subscription $AzureSubscriptionID --object-id $WebAppNameAdminId --secret-permissions get list --key-permissions get list --output $azCliOutput
+az keyvault set-policy --name $KeyVault  --resource-group $ResourceGroupForDeployment --subscription $AzureSubscriptionID --object-id $webAppNameAdminId --secret-permissions get list --key-permissions get list --output $azCliOutput
 
 az network vnet subnet update --resource-group $ResourceGroupForDeployment --vnet-name $vnetName --name $subnetWebName --service-endpoints "Microsoft.KeyVault"
 
@@ -389,7 +399,7 @@ $body= @"
 az cosmosdb sql role definition create --account-name $CosmosServerName  --resource-group $ResourceGroupForDeployment --body $body
 
   # Create role assignment
-az cosmosdb sql role assignment create --account-name $CosmosServerName --resource-group $ResourceGroupForDeployment  --role-assignment-id $roleAssignmentId  --role-definition-id $roleDefinitionId   --scope $cosmosDbAccount.id   --principal-id $WebAppNameAdminId
+az cosmosdb sql role assignment create --account-name $CosmosServerName --resource-group $ResourceGroupForDeployment  --role-assignment-id $roleAssignmentId  --role-definition-id $roleDefinitionId   --scope $cosmosDbAccount.id   --principal-id $webAppNameAdminId
 
 
 Write-host "   🔵 Clean up"
