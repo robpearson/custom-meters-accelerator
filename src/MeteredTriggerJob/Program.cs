@@ -30,7 +30,6 @@ class Program
             GrantType = configuration["GrantType"],
             SignedOutRedirectUri = configuration["SignedOutRedirectUri"],
             TenantId = configuration["TenantId"] ?? Guid.Empty.ToString(),
-            DataBaseName = configuration["CosmoDatabase"],
             PC_TenantId = configuration["PC_TenantId"],
             PC_ClientID = configuration["PC_ClientId"],
             PC_ClientSecret = configuration["PC_ClientSecret"],
