@@ -39,8 +39,7 @@ public class ApplicationLogService
         {
             id = id,
             ActionTime = DateTime.Now,
-            LogDetail = HttpUtility.HtmlEncode(logMessage),
-            PartitionKey=id
+            LogDetail = HttpUtility.HtmlEncode(logMessage)
         };
 
         return this.applicationLogRepository.Save(newLog);

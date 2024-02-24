@@ -9,12 +9,12 @@ namespace ManagedApplicationScheduler.DataAccess.Services
         /// <summary>
         /// The context.
         /// </summary>
-        private readonly CosmosDbContext context;
+        private readonly ApplicationsDBContext context;
 
 
 
 
-        public PlanRepository(CosmosDbContext context)
+        public PlanRepository(ApplicationsDBContext context)
         {
             this.context = context;
             this.context.Database.EnsureCreated();
@@ -27,7 +27,7 @@ namespace ManagedApplicationScheduler.DataAccess.Services
 
         public IEnumerable<Plan> GetAll()
         {
-            return this.context.Plan;
+            return this.context.Plans;
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace ManagedApplicationScheduler.DataAccess.Services
         /// <returns></returns>
         public Plan? Get(string id)
         {
-            return this.context.Plan.Where(s => s.id == id).FirstOrDefault();
+            return this.context.Plans.Where(s => s.id == id).FirstOrDefault();
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace ManagedApplicationScheduler.DataAccess.Services
         /// <returns></returns>
         public int Save(Plan entity)
         {
-            this.context.Add(entity);
+            this.context.Plans.Add(entity);
             return this.context.SaveChanges();
 
         }
@@ -55,7 +55,7 @@ namespace ManagedApplicationScheduler.DataAccess.Services
         public void Update(Plan entity)
         {
 
-            this.context.Update(entity);
+            this.context.Plans.Update(entity);
             this.context.SaveChanges();
 
 
@@ -63,7 +63,7 @@ namespace ManagedApplicationScheduler.DataAccess.Services
 
         public void Remove(Plan entity)
         {
-            this.context.Remove(entity);
+            this.context.Plans.Remove(entity);
             this.context.SaveChanges();
         }
     }

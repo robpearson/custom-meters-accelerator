@@ -42,7 +42,7 @@ class Program
 
 
         var services = new ServiceCollection()
-            .AddDbContext<CosmosDbContext>(options => options.UseCosmos(configuration.GetConnectionString("DefaultConnection"), config.DataBaseName))
+            .AddDbContext<ApplicationsDBContext>(options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")))
             .AddScoped<IScheduledTasksRepository, ScheduledTasksRepository>()
             .AddScoped<ISubscriptionsRepository, SubscriptionsRepository>()
             .AddScoped<IUsageResultRepository, UsageResultRepository>()

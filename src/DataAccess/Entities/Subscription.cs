@@ -23,7 +23,6 @@
         public string? ResourceUsageId { get; set; }
 
         public string? SubscriptionStatus { get; set; }
-        public string? PartitionKey { get; set; }
         public string? Dimension { get; set; }
         public string? SubscriptionKey { get; set; }
         public string? ResourceUri { get; set; }

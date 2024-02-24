@@ -42,7 +42,6 @@
         /// </summary>
         public string? PlanId { get; set; }
 
-        public string? PartitionKey { get; set; }
 
         public string? Frequency { get; set; }
         public DateTime? StartDate { get; set; }

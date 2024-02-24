@@ -29,10 +29,6 @@ namespace ManagedApplicationScheduler.Services.Models
         /// </summary>
         public string PlanId { get; set; }
         /// <summary>
-        /// Partition Key
-        /// </summary>
-        public string PartitionKey { get; set; }
-        /// <summary>
         /// Expect start date
         /// </summary>
         public DateTime StartDate { get; set; }

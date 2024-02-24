@@ -63,8 +63,6 @@ public class ManagedAppClientConfiguration
     /// </value>
     public string AdAuthenticationEndPoint { get; set; }
 
-    public string DataBaseName { get; set; }
-
     public string PC_TenantId { get; set; }
     public string PC_ClientSecret { get; set; }
     public string PC_ClientID { get; set; }
@@ -74,7 +72,4 @@ public class ManagedAppClientConfiguration
 
     public string Signature { get; set; }
 
-    
-
-    public string CosmoDbEndPoint { get; set; }
-}
+}    

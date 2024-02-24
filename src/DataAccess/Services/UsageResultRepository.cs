@@ -9,11 +9,11 @@ namespace ManagedApplicationScheduler.DataAccess.Services
         /// <summary>
         /// The context.
         /// </summary>
-        private readonly CosmosDbContext context;
+        private readonly ApplicationsDBContext context;
 
 
 
-        public UsageResultRepository(CosmosDbContext context)
+        public UsageResultRepository(ApplicationsDBContext context)
         {
             this.context = context;
             this.context.Database.EnsureCreated();
@@ -27,7 +27,7 @@ namespace ManagedApplicationScheduler.DataAccess.Services
 
         public IEnumerable<UsageResult> GetAll()
         {
-            return this.context.UsageResult;
+            return this.context.UsageResults;
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace ManagedApplicationScheduler.DataAccess.Services
         /// <returns></returns>
         public UsageResult? Get(string id)
         {
-            return this.context.UsageResult.Where(s => s.id == id).FirstOrDefault();
+            return this.context.UsageResults.Where(s => s.id == id).FirstOrDefault();
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace ManagedApplicationScheduler.DataAccess.Services
         /// <returns></returns>
         public int Save(UsageResult entity)
         {
-            this.context.Add(entity);
+            this.context.UsageResults.Add(entity);
             return this.context.SaveChanges();
 
         }

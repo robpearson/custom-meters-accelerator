@@ -14,7 +14,7 @@ namespace ManagedApplicationScheduler.DataAccess.Entities
         public string? OfferId { get; set; }
         public string? OfferName { get; set; }
         public string? Dimension { get; set; }
-        public string? PartitionKey { get; set; }
+  
 
     }
 }

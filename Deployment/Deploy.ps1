@@ -22,7 +22,10 @@ Param(
    [string][Parameter()]$PCADApplicationID, # PC Active Directory Application ID
    [string][Parameter()]$PCADApplicationSecret, # PC Active Directory Application ID
    [string][Parameter()]$PCTenantID, # PC Active Directory Application ID
-   [string][Parameter()]$CosmosServerName, # Name of the database server (without database.windows.net)
+   [string][Parameter()]$SQLServerName, # Name of the database server (without database.windows.net)
+   [string][Parameter()]$SQLDatabaseName, # Name of the database (Defaults to AMPSaaSDB)
+   [string][Parameter()]$SQLAdminLoginPassword, # SQL Admin login password
+   [string][Parameter()]$SQLAdminLogin, # SQL Admin login
    [string][Parameter()]$LogoURLpng,  # URL for Publisher .png logo
    [string][Parameter()]$LogoURLico,  # URL for Publisher .ico logo
    [string][Parameter()]$KeyVault, # Name of KeyVault
@@ -40,9 +43,21 @@ $startTime = Get-Date
 if ($ResourceGroupForDeployment -eq "") {
     $ResourceGroupForDeployment = $WebAppNamePrefix 
 }
-if ($CosmosServerName -eq "") {
-    $CosmosServerName = $WebAppNamePrefix + "-db"
+
+if ($SQLServerName -eq "") {
+    $SQLServerName = $WebAppNamePrefix + "-sql"
 }
+if ($SQLAdminLogin -eq "") {
+    $SQLAdminLogin = "saasdbadmin" + $(Get-Random -Minimum 1 -Maximum 1000)
+}
+if ($SQLAdminLoginPassword -eq "") {
+    $SQLAdminLoginPassword = ([System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes((New-Guid))))+"="
+}
+if ($SQLDatabaseName -eq "") {
+    $SQLDatabaseName = "custommetersdb"
+}
+
+
 
 if($KeyVault -eq "")
 {
@@ -265,8 +280,14 @@ $vnetName=$WebAppNamePrefix+"-net"
 $subnetName=$WebAppNamePrefix+"-default"
 $subnetWebName=$WebAppNamePrefix+"-web"
 $privateEndpointName=$WebAppNamePrefix+"-db-pe"
-$connection="AccountEndpoint=https://$CosmosServerName.privatelink.documents.azure.com:443/"
-$zoneName="privatelink.documents.azure.com"
+$zoneName="privatelink.database.windows.net"
+$ServerUri = $SQLServerName+".database.windows.net"
+$Connection="Data Source=tcp:"+$ServerUri+",1433;Initial Catalog="+$SQLDatabaseName+";Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication=\"Active Directory Default\";"
+$ADApplicationSecretKeyVault="@Microsoft.KeyVault(VaultName=$KeyVault;SecretName=ADApplicationSecret)"
+$PCADApplicationSecretKeyVault="@Microsoft.KeyVault(VaultName=$KeyVault;SecretName=PCADApplicationSecret)"
+# $DefaultConnectionKeyVault="@Microsoft.KeyVault(VaultName=$KeyVault;SecretName=DefaultConnection) "
+$aadAdminObjectId=(az ad signed-in-user show --query objectId -o tsv)
+$aadAdminLogin=(az ad signed-in-user show --query userPrincipalName -o tsv)
 
 Write-host "   🔵 Resource Group"
 Write-host "      ➡️ Create Resource Group"
@@ -277,34 +298,20 @@ az network vnet create --name $vnetName --resource-group $ResourceGroupForDeploy
 az network vnet subnet create --name $subnetName --resource-group $ResourceGroupForDeployment --vnet-name $vnetName --address-prefixes 10.0.1.0/24
 az network vnet subnet create --name $subnetWebName --resource-group $ResourceGroupForDeployment --vnet-name $vnetName --address-prefixes 10.0.2.0/24
 
-#keep the space at the end of the string - bug in az cli running on windows powershell truncates last char https://github.com/Azure/azure-cli/issues/10066
-$ADApplicationSecretKeyVault="@Microsoft.KeyVault(VaultName=$KeyVault;SecretName=ADApplicationSecret)"
-$PCADApplicationSecretKeyVault="@Microsoft.KeyVault(VaultName=$KeyVault;SecretName=PCADApplicationSecret)"
-$DefaultConnectionKeyVault="@Microsoft.KeyVault(VaultName=$KeyVault;SecretName=DefaultConnection) "
 
 $Sig= ([System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes((New-Guid))))
 
 
-Write-host "   🔵 CosmosDB Server"
-Write-host "      ➡️ Create Cosmos Server"
-az cosmosdb create --name $CosmosServerName --resource-group $ResourceGroupForDeployment --subscription $currentSubscription --assign-identity '[system]'
+Write-host "   🔵 SQL Server"
+Write-host "      ➡️ Create Sql Server"
+az sql server create --name $SQLServerName --resource-group $ResourceGroupForDeployment --location $Location --admin-user $SQLAdminLogin --admin-password $SQLAdminLoginPassword --output $azCliOutput
+Write-host "      ➡️ Set minimalTlsVersion to 1.2"
+az sql server update --name $SQLServerName --resource-group $ResourceGroupForDeployment --set minimalTlsVersion="1.2"
+Write-host "      ➡️ Create SQL DB"
+az sql db create --resource-group $ResourceGroupForDeployment --server $SQLServerName --name $SQLDatabaseName  --edition Standard  --capacity 10 --zone-redundant false --output $azCliOutput
 
-# Get Cosmos DB account
-$cosmosDbAccount=$(az cosmosdb show --name $CosmosServerName --resource-group $ResourceGroupForDeployment) | ConvertFrom-Json
-
-# Create private endpoint
-az network private-endpoint create --name $privateEndpointName --resource-group $ResourceGroupForDeployment --vnet-name $vnetName --subnet $subnetName --private-connection-resource-id $cosmosDbAccount.id  --group-ids sql --connection-name CosmosDBConnection
-
-#Zone name differs based on the API type and group ID you are using. 
-
-
-az network private-dns zone create --resource-group $ResourceGroupForDeployment --name  $zoneName
-
-az network private-dns link vnet create --resource-group $ResourceGroupForDeployment  --zone-name  $zoneName  --name "mycosmosdbLink"   --virtual-network $vnetName  --registration-enabled false 
-
-#Create a DNS zone group
-az network private-endpoint dns-zone-group create  --resource-group $ResourceGroupForDeployment  --endpoint-name $PrivateEndpointName  --name "myCosmosdbGroup"  --private-dns-zone $zoneName  --zone-name "myCosmosdbZone"
-
+# Set AAD admin
+az sql server ad-admin create --server $SQLServerName --resource-group $ResourceGroupForDeployment --display-name $aadAdminLogin --object-id $aadAdminObjectId
 
 Write-host "   🔵 KeyVault"
 Write-host "      ➡️ Create KeyVault"
@@ -327,13 +334,6 @@ else {
 	Write-Error "  PC Secret could not be added to KeyVault since it is blank. Please add it manually."
 }
 
-if(($Connection))
-{
-	az keyvault secret set --vault-name $KeyVault  --name DefaultConnection --value $Connection --output $azCliOutput
-}
-else {
-	Write-Error "  DB Connection could not be added to KeyVault since it is blank. Please add it manually."
-}
 
 Write-host "   🔵 App Service Plan"
 Write-host "      ➡️ Create App Service Plan"
@@ -347,8 +347,8 @@ Write-host "      ➡️ Assign Identity"
 $webAppNameAdminId = az webapp identity assign -g $ResourceGroupForDeployment  -n $webAppNameAdmin --identities [system] --query principalId -o tsv
 
 Write-host "      ➡️ Set Configuration"
-az webapp config connection-string set -g $ResourceGroupForDeployment -n $webAppNameAdmin -t SQLAzure --output $azCliOutput --settings DefaultConnection=$DefaultConnectionKeyVault 
-az webapp config appsettings set -g $ResourceGroupForDeployment  -n $webAppNameAdmin --output $azCliOutput --settings AdAuthenticationEndPoint=https://login.microsoftonline.com/ KnownUsers=$PublisherAdminUsers Marketplace_Uri=https://marketplaceapi.microsoft.com/api/usageEvent?api-version=2018-08-31 GrantType=client_credentials ClientId=$ADApplicationID ClientSecret=$ADApplicationSecretKeyVault TenantId=$TenantID Scope=20e940b3-4c77-4b0b-9a53-9e16a1b010a7/.default CosmoDatabase=Applications PC_ClientId=$PCADApplicationID PC_ClientSecret=$PCADApplicationSecretKeyVault PC_TenantId=$PCTenantID PC_Scope=https://api.partner.microsoft.com/.default Signature=$Sig AMAApiConfiguration_CodeHash=$AMAApiConfiguration_CodeHash CosmosDbEndpoint=cosmosDbAccountEndPoint
+az webapp config connection-string set -g $ResourceGroupForDeployment -n $webAppNameAdmin -t SQLAzure --output $azCliOutput --settings DefaultConnection=$Connection 
+az webapp config appsettings set -g $ResourceGroupForDeployment  -n $webAppNameAdmin --output $azCliOutput --settings AdAuthenticationEndPoint=https://login.microsoftonline.com/ KnownUsers=$PublisherAdminUsers Marketplace_Uri=https://marketplaceapi.microsoft.com/api/usageEvent?api-version=2018-08-31 GrantType=client_credentials ClientId=$ADApplicationID ClientSecret=$ADApplicationSecretKeyVault TenantId=$TenantID Scope=20e940b3-4c77-4b0b-9a53-9e16a1b010a7/.default  PC_ClientId=$PCADApplicationID PC_ClientSecret=$PCADApplicationSecretKeyVault PC_TenantId=$PCTenantID PC_Scope=https://api.partner.microsoft.com/.default Signature=$Sig AMAApiConfiguration_CodeHash=$AMAApiConfiguration_CodeHash 
 az webapp config set -g $ResourceGroupForDeployment -n $webAppNameAdmin --always-on true  --output $azCliOutput
 
 #endregion
@@ -375,31 +375,23 @@ az keyvault update --resource-group $ResourceGroupForDeployment --name $KeyVault
 
 az keyvault update --resource-group $ResourceGroupForDeployment --name $KeyVault --default-action Deny
 
-Write-host "   🔵 CosmosDB role assignment"
+Write-host "      ➡️ Login into SQL Server"
+$credential = Get-Credential
+$query="CREATE USER ["+$webAppNameAdmin+"] FROM EXTERNAL PROVIDER GO; ALTER ROLE db_datareader ADD MEMBER ["+$webAppNameAdmin+"] GO; ALTER ROLE db_ddladmin ADD MEMBER ["+$webAppNameAdmin+"] GO; ALTER ROLE db_datawriter ADD MEMBER ["+$webAppNameAdmin+"] GO; "
+Write-host "      ➡️ Add WebApp MSI to SQL Server"
+Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName -Credential $credential  -Query $query
+Write-host "      ➡️ Execute SQL schema/data script"
+Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName -Credential $credential -inputfile "./Schema.sql"
 
-# Generate role definition and assignment IDs
-$roleDefinitionId = New-Guid
-$roleAssignmentId = New-Guid
-
-$body= @"
-{
-	"Id" : "$roleDefinitionId",
-	"RoleName" : "AdminSite Read Write",
-	"Type" : "CustomRole",
-	"AssignableScopes" : ["/"],
-	"DataActions" : [
-		"Microsoft.DocumentDB/databaseAccounts/readMetadata",
-		"Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*"
-	]
-
+Write-host "      ➡️ Add SQL Server Firewall rules"
+az sql server firewall-rule create --resource-group $ResourceGroupForDeployment --server $SQLServerName -n AllowAzureIP --start-ip-address "0.0.0.0" --end-ip-address "0.0.0.0" --output $azCliOutput
+if ($env:ACC_CLOUD -eq $null){
+    Write-host "      ➡️ Running in local environment - Add current IP to firewall"
+	$publicIp = (Invoke-WebRequest -uri "http://ifconfig.me/ip").Content
+    az sql server firewall-rule create --resource-group $ResourceGroupForDeployment --server $SQLServerName -n AllowIP --start-ip-address "$publicIp" --end-ip-address "$publicIp" --output $azCliOutput
 }
-"@
 
-# Create custom role definition
-az cosmosdb sql role definition create --account-name $CosmosServerName  --resource-group $ResourceGroupForDeployment --body $body
-
-  # Create role assignment
-az cosmosdb sql role assignment create --account-name $CosmosServerName --resource-group $ResourceGroupForDeployment  --role-assignment-id $roleAssignmentId  --role-definition-id $roleDefinitionId   --scope $cosmosDbAccount.id   --principal-id $webAppNameAdminId
+#Enable Private Endpoint
 
 
 Write-host "   🔵 Clean up"

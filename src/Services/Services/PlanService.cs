@@ -40,7 +40,6 @@ namespace ManagedApplicationScheduler.Services.Services
 
                 var entity = new Plan();
                 entity.id = Guid.NewGuid().ToString();
-                entity.PartitionKey = entity.id;
                 entity.PlanName = planModel.PlanName;
                 entity.PlanId = planModel.Name; // plan ID in notification payload
                 entity.OfferName = planModel.ProductName;

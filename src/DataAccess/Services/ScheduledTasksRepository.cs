@@ -1,7 +1,6 @@
-﻿using ManagedApplicationScheduler.DataAccess.Context;
-using ManagedApplicationScheduler.DataAccess.Contracts;
+﻿using ManagedApplicationScheduler.DataAccess.Contracts;
 using ManagedApplicationScheduler.DataAccess.Entities;
-
+using ManagedApplicationScheduler.DataAccess.Context;
 namespace ManagedApplicationScheduler.DataAccess.Services
 {
     public class ScheduledTasksRepository : IScheduledTasksRepository
@@ -9,15 +8,15 @@ namespace ManagedApplicationScheduler.DataAccess.Services
         /// <summary>
         /// The context.
         /// </summary>
-        private readonly CosmosDbContext context;
+        private readonly ApplicationsDBContext context;
 
 
 
 
-        public ScheduledTasksRepository(CosmosDbContext context)
+        public ScheduledTasksRepository(ApplicationsDBContext context)
         {
             this.context = context;
-            this.context.Database.EnsureCreated();
+            
         }
 
         /// <summary>
@@ -47,7 +46,7 @@ namespace ManagedApplicationScheduler.DataAccess.Services
         /// <returns></returns>
         public int Save(ScheduledTasks entity)
         {
-            this.context.Add(entity);
+            this.context.ScheduledTasks.Add(entity);
             return this.context.SaveChanges();
 
         }
@@ -55,7 +54,7 @@ namespace ManagedApplicationScheduler.DataAccess.Services
         public void Update(ScheduledTasks entity)
         {
 
-            this.context.Update(entity);
+            this.context.ScheduledTasks.Update(entity);
             this.context.SaveChanges();
 
 
@@ -63,7 +62,7 @@ namespace ManagedApplicationScheduler.DataAccess.Services
 
         public void Remove(ScheduledTasks entity)
         {
-            this.context.Remove(entity);
+            this.context.ScheduledTasks.Remove(entity);
             this.context.SaveChanges();
         }
     }

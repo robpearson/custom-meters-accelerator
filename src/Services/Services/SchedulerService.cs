@@ -43,7 +43,6 @@ namespace ManagedApplicationScheduler.Services.Services
             entity.Dimension = task.Dimension;
             entity.Quantity = task.Quantity;
             entity.ResourceUri = task.ResourceUri;
-            entity.PartitionKey = task.id;
             entity.Status = task.Status;
             entity.Frequency = task.Frequency;
 
@@ -61,7 +60,6 @@ namespace ManagedApplicationScheduler.Services.Services
             entity.Dimension = task.Dimension;
             entity.Quantity = task.Quantity;
             entity.ResourceUri = task.ResourceUri;
-            entity.PartitionKey = task.id;
             entity.Status = task.Status;
             entity.Frequency = task.Frequency;
             this.schedulerRepository.Update(entity);
@@ -90,7 +88,6 @@ namespace ManagedApplicationScheduler.Services.Services
             entity.Dimension = task.Dimension;
             entity.Quantity = task.Quantity;
             entity.ResourceUri = task.ResourceUri;
-            entity.PartitionKey = task.id;
             entity.Status = task.Status;
             entity.Frequency = task.Frequency;
 
@@ -112,7 +109,6 @@ namespace ManagedApplicationScheduler.Services.Services
                 entity.Dimension = task.Dimension;
                 entity.Quantity = task.Quantity;
                 entity.ResourceUri = task.ResourceUri;
-                entity.PartitionKey = task.id;
                 entity.Status = task.Status;
                 entity.Frequency = task.Frequency;
                 schedulers.Add(entity);
@@ -138,7 +134,6 @@ namespace ManagedApplicationScheduler.Services.Services
                 entity.Dimension = task.Dimension;
                 entity.Quantity = task.Quantity;
                 entity.ResourceUri = task.ResourceUri;
-                entity.PartitionKey = task.id;
                 entity.Status = task.Status;
                 entity.Frequency = task.Frequency;
                 schedulers.Add(entity);

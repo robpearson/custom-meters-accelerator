@@ -10,12 +10,12 @@ namespace ManagedApplicationScheduler.DataAccess.Services
         /// <summary>
         /// The context.
         /// </summary>
-        private readonly CosmosDbContext context;
+        private readonly ApplicationsDBContext context;
 
 
 
 
-        public SubscriptionsRepository(CosmosDbContext context)
+        public SubscriptionsRepository(ApplicationsDBContext context)
         {
             this.context = context;
             this.context.Database.EnsureCreated();
@@ -30,7 +30,7 @@ namespace ManagedApplicationScheduler.DataAccess.Services
 
         public IEnumerable<Subscription> GetAll()
         {
-            return this.context.Subscription.ToList();
+            return this.context.Subscriptions.ToList();
         }
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace ManagedApplicationScheduler.DataAccess.Services
         /// <returns></returns>
         public Subscription? Get(string id)
         {
-            return context.Subscription.Where(s => s.id == id).ToList().FirstOrDefault();
+            return context.Subscriptions.Where(s => s.id == id).ToList().FirstOrDefault();
         }
 
 
@@ -52,7 +52,7 @@ namespace ManagedApplicationScheduler.DataAccess.Services
         public int Save(Subscription entity)
         {
 
-            this.context.Add(entity);
+            this.context.Subscriptions.Add(entity);
             return this.context.SaveChanges();
 
 
@@ -60,12 +60,12 @@ namespace ManagedApplicationScheduler.DataAccess.Services
 
         public void Update(Subscription entity)
         {
-            this.context.Update(entity);
+            this.context.Subscriptions.Update(entity);
             this.context.SaveChanges();
         }
         public void Remove(Subscription entity)
         {
-            this.context.Remove(entity);
+            this.context.Subscriptions.Remove(entity);
             this.context.SaveChanges();
         }
 

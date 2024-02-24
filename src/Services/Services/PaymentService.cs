@@ -32,9 +32,13 @@ namespace ManagedApplicationScheduler.Services.Services
             entity.PaymentType = paymentModel.PaymentType;
             entity.Quantity = paymentModel.Quantity;
             entity.Dimension = paymentModel.Dimension;
-            entity.StartDate = paymentModel.StartDate;
+            if(paymentModel.StartDate.ToShortDateString()!="1/1/0001")
+            {
+                entity.StartDate = paymentModel.StartDate;
+            }
+
+            
             entity.PlanId = paymentModel.PlanId;
-            entity.PartitionKey = entity.id;
             return this.paymentRepository.Save(entity);
         }
 
@@ -50,10 +54,12 @@ namespace ManagedApplicationScheduler.Services.Services
                 payment.OfferId = entity.OfferId;
                 payment.Quantity = entity.Quantity;
                 payment.Dimension = entity.Dimension;
-                payment.StartDate = entity.StartDate.Value;
+                if (entity.StartDate != null)
+                {
+                    payment.StartDate = entity.StartDate.Value;
+                }
                 payment.PaymentName = entity.PaymentName;
                 payment.PaymentType = entity.PaymentType;
-                payment.PartitionKey = entity.PartitionKey;
                 paymentList.Add(payment);
             }
 
@@ -94,11 +100,14 @@ namespace ManagedApplicationScheduler.Services.Services
             payment.PlanId = entity.PlanId;
             payment.Quantity = entity.Quantity;
             payment.Dimension = entity.Dimension;
-            payment.StartDate = entity.StartDate.Value;
+            if (entity.StartDate != null)
+            {
+                payment.StartDate = entity.StartDate.Value;
+            }
+            
             payment.OfferId = entity.OfferId;
             payment.PaymentName = entity.PaymentName;
             payment.PaymentType = entity.PaymentType;
-            payment.PartitionKey = entity.PartitionKey;
 
             return payment;
         }
@@ -135,7 +144,6 @@ namespace ManagedApplicationScheduler.Services.Services
                         Status = "Scheduled",
                         id = Guid.NewGuid().ToString()
                     };
-                    task.PartitionKey = task.id;
                     if(item.PaymentType=="Upfront")
                     {
                         DateTime rounded = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour+1, 0, 0);

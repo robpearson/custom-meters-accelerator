@@ -56,10 +56,6 @@ namespace ManagedApplicationScheduler.Services.Models
         [JsonPropertyName("frequency")]
         public string Frequency { get; set; }
 
-
-        public string PartitionKey { get; set; }
-
-
         public string Status { get; set; } //Enabled, Canceled, Completed, Error
 
 

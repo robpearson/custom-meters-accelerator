@@ -63,7 +63,7 @@ public class MeteredUsageResultModel
     /// The quantity.
     /// </value>
     [JsonPropertyName("quantity")]
-    public decimal Quantity { get; set; }
+    public double Quantity { get; set; }
 
     /// <summary>
     /// Gets or sets the dimension.
