@@ -286,8 +286,8 @@ $Connection="Data Source=tcp:"+$ServerUri+",1433;Initial Catalog="+$SQLDatabaseN
 $ADApplicationSecretKeyVault="@Microsoft.KeyVault(VaultName=$KeyVault;SecretName=ADApplicationSecret)"
 $PCADApplicationSecretKeyVault="@Microsoft.KeyVault(VaultName=$KeyVault;SecretName=PCADApplicationSecret)"
 # $DefaultConnectionKeyVault="@Microsoft.KeyVault(VaultName=$KeyVault;SecretName=DefaultConnection) "
-$aadAdminObjectId=(az ad signed-in-user show --query objectId -o tsv)
-$aadAdminLogin=(az ad signed-in-user show --query userPrincipalName -o tsv)
+$aadAdminObjectId=az ad signed-in-user show --query id -o tsv
+$aadAdminLogin=az ad signed-in-user show --query mail -o tsv
 
 Write-host "   🔵 Resource Group"
 Write-host "      ➡️ Create Resource Group"
