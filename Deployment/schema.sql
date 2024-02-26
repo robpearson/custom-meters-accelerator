@@ -9,7 +9,7 @@ BEGIN
         Description NVARCHAR(150)
     );
 
-        INSERT INTO ApplicationConfiguration
+        INSERT INTO ApplicationConfigurations
     	([Name],[Value],[Description])
     VALUES
         ('SMTPFromEmail','','SMTP Email'),
