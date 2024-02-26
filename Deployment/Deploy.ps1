@@ -384,9 +384,9 @@ $webAppId = az ad sp show --id $webAppNameAdminId --query appId -o tsv
 write-host "$webAppId"
 $sid = "0x" + [System.BitConverter]::ToString(([guid]$webAppId).ToByteArray()).Replace("-", "")
 $queryAddUser="CREATE USER ["+$webAppNameAdmin+"] WITH DEFAULT_SCHEMA=[dbo], SID ="+$sid+", TYPE = E;"
-$queryAlterUser1="ALTER ROLE db_datareader ADD MEMBER ['"+$webAppNameAdmin+"'];"
-$queryAlterUser2="ALTER ROLE db_ddladmin ADD MEMBER ['"+$webAppNameAdmin+"'];"
-$queryAlterUser3=" ALTER ROLE db_datawriter ADD MEMBER ['"+$webAppNameAdmin+"'];"
+$queryAlterUser1="ALTER ROLE db_datareader ADD MEMBER ["+$webAppNameAdmin+"];"
+$queryAlterUser2="ALTER ROLE db_ddladmin ADD MEMBER ["+$webAppNameAdmin+"];"
+$queryAlterUser3=" ALTER ROLE db_datawriter ADD MEMBER ["+$webAppNameAdmin+"];"
 
 
 Write-host "      ➡️ Add WebApp MSI to SQL Server"
