@@ -3,32 +3,32 @@ IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'Appl
 BEGIN
     CREATE TABLE [ApplicationConfigurations]
     (
-        id NVARCHAR(50) PRIMARY KEY,
+        id int PRIMARY KEY,
         Name NVARCHAR(150),
         Value NVARCHAR(4000),
         Description NVARCHAR(150)
     );
 
         INSERT INTO ApplicationConfigurations
-    	([Name],[Value],[Description])
+    	([id],[Name],[Value],[Description])
     VALUES
-        ('SMTPFromEmail','','SMTP Email'),
-    	('SMTPPassword','','SMTP Password'),
-    	('SMTPHost','','SMTP Host'),
-    	('SMTPPort','','SMTP Port'),
-    	('SMTPUserName','','SMTP User Name'),
-    	('SMTPSslEnabled','','SMTP Ssl Enabled'),
-    	('ApplicationName','Contoso','Application Name'),
-    	('SchedulerEmailTo','true','Active Email Enabled'),
-    	('EnablesSuccessfulSchedulerEmail','false','Enable Successful Email'),
-    	('EnablesFailureSchedulerEmail','false','Enable Failure Email'),
-    	('EnablesMissingSchedulerEmail','false','Enable Missing Email'),
-        ('Failure_Subject', 'Scheduled Metered Task Failure!', 'Failure Email Subject'),
-        ('Accepted_Subject', 'Scheduled Metered Task Submitted Successfully!', 'Successful Email Subject'),
-        ('Missing_Subject', 'Scheduled Metered Task was Skipped!', 'Missing Email Subject'),
-        ('Missing_Email', '<html><head></head><body><center><table align=center><tr><td><h2 >Subscription ****SubscriptionName****</h2><br><p>The Scheduled Task ****SchedulerTaskName**** was <b>skipped</b> by scheduler engine!</b></p><br>Please try again or contact technical support to troubleshoot the issue.<p>The following section is the deatil results.</p><hr/>****ResponseJson****</td></tr></table></center></body> </html>', 'Missing Email Template'),
-        ('Accepted_Email', '<html><head></head><body><center><table align=center><tr><td><h2>Subscription ****SubscriptionName****</h2><br><p>The Scheduled Task ****SchedulerTaskName**** was fired <b>Successfully</b></p><p>The following section is the deatil results.</p><hr/>****ResponseJson****</td></tr></table></center></body> </html>', 'Successful Email Template'),
-        ('Failure_Email', '<html><head></head><body><center><table align=center><tr><td><h2 >Subscription ****SubscriptionName****</h2><br><p>The Scheduled Task ****SchedulerTaskName**** was fired<b> but Failed to Submit Data</b></p><br>Please try again or contact technical support to troubleshoot the issue.<p>The following section is the deatil results.</p><hr/>****ResponseJson****</td></tr></table></center></body> </html>', 'Failure Email Template')
+        (1,'SMTPFromEmail','','SMTP Email'),
+    	(2,'SMTPPassword','','SMTP Password'),
+    	(3,'SMTPHost','','SMTP Host'),
+    	(4,'SMTPPort','','SMTP Port'),
+    	(5,'SMTPUserName','','SMTP User Name'),
+    	(6,'SMTPSslEnabled','','SMTP Ssl Enabled'),
+    	(7,'ApplicationName','Contoso','Application Name'),
+    	(8,'SchedulerEmailTo','true','Active Email Enabled'),
+    	(9,'EnablesSuccessfulSchedulerEmail','false','Enable Successful Email'),
+    	(10,'EnablesFailureSchedulerEmail','false','Enable Failure Email'),
+    	(11,'EnablesMissingSchedulerEmail','false','Enable Missing Email'),
+        (12,'Failure_Subject', 'Scheduled Metered Task Failure!', 'Failure Email Subject'),
+        (13,'Accepted_Subject', 'Scheduled Metered Task Submitted Successfully!', 'Successful Email Subject'),
+        (14,'Missing_Subject', 'Scheduled Metered Task was Skipped!', 'Missing Email Subject'),
+        (15,'Missing_Email', '<html><head></head><body><center><table align=center><tr><td><h2 >Subscription ****SubscriptionName****</h2><br><p>The Scheduled Task ****SchedulerTaskName**** was <b>skipped</b> by scheduler engine!</b></p><br>Please try again or contact technical support to troubleshoot the issue.<p>The following section is the deatil results.</p><hr/>****ResponseJson****</td></tr></table></center></body> </html>', 'Missing Email Template'),
+        (16,'Accepted_Email', '<html><head></head><body><center><table align=center><tr><td><h2>Subscription ****SubscriptionName****</h2><br><p>The Scheduled Task ****SchedulerTaskName**** was fired <b>Successfully</b></p><p>The following section is the deatil results.</p><hr/>****ResponseJson****</td></tr></table></center></body> </html>', 'Successful Email Template'),
+        (17,'Failure_Email', '<html><head></head><body><center><table align=center><tr><td><h2 >Subscription ****SubscriptionName****</h2><br><p>The Scheduled Task ****SchedulerTaskName**** was fired<b> but Failed to Submit Data</b></p><br>Please try again or contact technical support to troubleshoot the issue.<p>The following section is the deatil results.</p><hr/>****ResponseJson****</td></tr></table></center></body> </html>', 'Failure Email Template')
 END;
 GO
 
