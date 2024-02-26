@@ -23,14 +23,12 @@ BEGIN
     	('EnablesSuccessfulSchedulerEmail','false','Enable Successful Email'),
     	('EnablesFailureSchedulerEmail','false','Enable Failure Email'),
     	('EnablesMissingSchedulerEmail','false','Enable Missing Email'),
-        ("Failure_Subject", "Scheduled Metered Task Failure!", "Failure Email Subject"),
-        ("Accepted_Subject", "Scheduled Metered Task Submitted Successfully!", "Successful Email Subject"),
-        ("Missing_Subject", "Scheduled Metered Task was Skipped!", "Missing Email Subject"),
-        ("Missing_Email", "<html><head></head><body><center><table align=center><tr><td><h2 >Subscription ****SubscriptionName****</h2><br><p>The Scheduled Task ****SchedulerTaskName**** was <b>skipped</b> by scheduler engine!</b></p><br>Please try again or contact technical support to troubleshoot the issue.<p>The following section is the deatil results.</p><hr/>****ResponseJson****</td></tr></table></center></body> </html>", "Missing Email Template"),
-        ("Accepted_Email", "<html><head></head><body><center><table align=center><tr><td><h2>Subscription ****SubscriptionName****</h2><br><p>The Scheduled Task ****SchedulerTaskName**** was fired <b>Successfully</b></p><p>The following section is the deatil results.</p><hr/>****ResponseJson****</td></tr></table></center></body> </html>", "Successful Email Template"),
-        ("Failure_Email", "<html><head></head><body><center><table align=center><tr><td><h2 >Subscription ****SubscriptionName****</h2><br><p>The Scheduled Task ****SchedulerTaskName**** was fired<b> but Failed to Submit Data</b></p><br>Please try again or contact technical support to troubleshoot the issue.<p>The following section is the deatil results.</p><hr/>****ResponseJson****</td></tr></table></center></body> </html>", "Failure Email Template")
-
-END;
+        ('Failure_Subject', 'Scheduled Metered Task Failure!', 'Failure Email Subject'),
+        ('Accepted_Subject', 'Scheduled Metered Task Submitted Successfully!', 'Successful Email Subject'),
+        ('Missing_Subject', 'Scheduled Metered Task was Skipped!', 'Missing Email Subject'),
+        ('Missing_Email', '<html><head></head><body><center><table align=center><tr><td><h2 >Subscription ****SubscriptionName****</h2><br><p>The Scheduled Task ****SchedulerTaskName**** was <b>skipped</b> by scheduler engine!</b></p><br>Please try again or contact technical support to troubleshoot the issue.<p>The following section is the deatil results.</p><hr/>****ResponseJson****</td></tr></table></center></body> </html>', 'Missing Email Template'),
+        ('Accepted_Email', '<html><head></head><body><center><table align=center><tr><td><h2>Subscription ****SubscriptionName****</h2><br><p>The Scheduled Task ****SchedulerTaskName**** was fired <b>Successfully</b></p><p>The following section is the deatil results.</p><hr/>****ResponseJson****</td></tr></table></center></body> </html>', 'Successful Email Template'),
+        ('Failure_Email', '<html><head></head><body><center><table align=center><tr><td><h2 >Subscription ****SubscriptionName****</h2><br><p>The Scheduled Task ****SchedulerTaskName**** was fired<b> but Failed to Submit Data</b></p><br>Please try again or contact technical support to troubleshoot the issue.<p>The following section is the deatil results.</p><hr/>****ResponseJson****</td></tr></table></center></body> </html>', 'Failure Email Template')
 END;
 GO
 
