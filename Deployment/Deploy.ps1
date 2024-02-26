@@ -313,6 +313,9 @@ az sql db create --resource-group $ResourceGroupForDeployment --server $SQLServe
 # Set AAD admin
 az sql server ad-admin create --server $SQLServerName --resource-group $ResourceGroupForDeployment --display-name $aadAdminLogin --object-id $aadAdminObjectId
 
+Write-host "      ➡️ Add SQL Server Firewall rules"
+az sql server firewall-rule create --resource-group $ResourceGroupForDeployment --server $SQLServerName -n AllowAzureIP --start-ip-address "0.0.0.0" --end-ip-address "0.0.0.0" --output $azCliOutput
+
 Write-host "   🔵 KeyVault"
 Write-host "      ➡️ Create KeyVault"
 az keyvault create --name $KeyVault --resource-group $ResourceGroupForDeployment --output $azCliOutput
@@ -345,7 +348,6 @@ az webapp create -g $ResourceGroupForDeployment -p $webAppNameService -n $webApp
 
 Write-host "      ➡️ Assign Identity"
 $webAppNameAdminId = az webapp identity assign -g $ResourceGroupForDeployment  -n $webAppNameAdmin --identities [system] --query principalId -o tsv
-$webAppId = az ad sp show --id $webAppNameAdminId --query appId -o tsv
 
 Write-host "      ➡️ Set Configuration"
 az webapp config connection-string set -g $ResourceGroupForDeployment -n $webAppNameAdmin -t SQLAzure --output $azCliOutput --settings DefaultConnection=$Connection 
@@ -377,6 +379,9 @@ az keyvault update --resource-group $ResourceGroupForDeployment --name $KeyVault
 az keyvault update --resource-group $ResourceGroupForDeployment --name $KeyVault --default-action Deny
 
 Write-host "      ➡️ Login into SQL Server"
+write-host "$webAppNameAdminId"
+$webAppId = az ad sp show --id $webAppNameAdminId --query appId -o tsv
+write-host "$webAppId"
 $sid = "0x" + [System.BitConverter]::ToString(([guid]$webAppId).ToByteArray()).Replace("-", "")
 $queryAddUser="CREATE USER ["+$webAppNameAdmin+"] WITH DEFAULT_SCHEMA=[dbo], SID ="+$sid+", TYPE = E;"
 $queryAlterUser1="ALTER ROLE db_datareader ADD MEMBER ['"+$webAppNameAdmin+"'];"
@@ -393,8 +398,6 @@ Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName   -Query $qu
 Write-host "      ➡️ Execute SQL schema/data script"
 Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName  -inputfile "./schema.sql" -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
 
-Write-host "      ➡️ Add SQL Server Firewall rules"
-az sql server firewall-rule create --resource-group $ResourceGroupForDeployment --server $SQLServerName -n AllowAzureIP --start-ip-address "0.0.0.0" --end-ip-address "0.0.0.0" --output $azCliOutput
 if ($env:ACC_CLOUD -eq $null){
     Write-host "      ➡️ Running in local environment - Add current IP to firewall"
 	$publicIp = (Invoke-WebRequest -uri "http://ifconfig.me/ip").Content
