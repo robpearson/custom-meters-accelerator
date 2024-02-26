@@ -345,6 +345,7 @@ az webapp create -g $ResourceGroupForDeployment -p $webAppNameService -n $webApp
 
 Write-host "      ➡️ Assign Identity"
 $webAppNameAdminId = az webapp identity assign -g $ResourceGroupForDeployment  -n $webAppNameAdmin --identities [system] --query principalId -o tsv
+$webAppId = az ad sp show --id $webAppNameAdminId --query appId -o tsv
 
 Write-host "      ➡️ Set Configuration"
 az webapp config connection-string set -g $ResourceGroupForDeployment -n $webAppNameAdmin -t SQLAzure --output $azCliOutput --settings DefaultConnection=$Connection 
@@ -376,12 +377,21 @@ az keyvault update --resource-group $ResourceGroupForDeployment --name $KeyVault
 az keyvault update --resource-group $ResourceGroupForDeployment --name $KeyVault --default-action Deny
 
 Write-host "      ➡️ Login into SQL Server"
-$credential = Get-Credential
-$query="CREATE USER ["+$webAppNameAdmin+"] FROM EXTERNAL PROVIDER GO; ALTER ROLE db_datareader ADD MEMBER ["+$webAppNameAdmin+"] GO; ALTER ROLE db_ddladmin ADD MEMBER ["+$webAppNameAdmin+"] GO; ALTER ROLE db_datawriter ADD MEMBER ["+$webAppNameAdmin+"] GO; "
+$sid = "0x" + [System.BitConverter]::ToString(([guid]$webAppId).ToByteArray()).Replace("-", "")
+$queryAddUser="CREATE USER ["+$webAppNameAdmin+"] WITH DEFAULT_SCHEMA=[dbo], SID ="+$sid+", TYPE = E;"
+$queryAlterUser1="ALTER ROLE db_datareader ADD MEMBER ['"+$webAppNameAdmin+"'];"
+$queryAlterUser2="ALTER ROLE db_ddladmin ADD MEMBER ['"+$webAppNameAdmin+"'];"
+$queryAlterUser3=" ALTER ROLE db_datawriter ADD MEMBER ['"+$webAppNameAdmin+"'];"
+
+
 Write-host "      ➡️ Add WebApp MSI to SQL Server"
-Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName -Credential $credential  -Query $query
+Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName   -Query $queryAddUser -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
+Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName   -Query $queryAlterUser1 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
+Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName   -Query $queryAlterUser2 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
+Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName   -Query $queryAlterUser3 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
+
 Write-host "      ➡️ Execute SQL schema/data script"
-Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName -Credential $credential -inputfile "./Schema.sql"
+Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName  -inputfile "./schema.sql" -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
 
 Write-host "      ➡️ Add SQL Server Firewall rules"
 az sql server firewall-rule create --resource-group $ResourceGroupForDeployment --server $SQLServerName -n AllowAzureIP --start-ip-address "0.0.0.0" --end-ip-address "0.0.0.0" --output $azCliOutput
