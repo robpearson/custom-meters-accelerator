@@ -280,8 +280,10 @@ $vnetName=$WebAppNamePrefix+"-net"
 $subnetName=$WebAppNamePrefix+"-default"
 $subnetWebName=$WebAppNamePrefix+"-web"
 $privateEndpointName=$WebAppNamePrefix+"-db-pe"
-$zoneName="privatelink.database.windows.net"
-$ServerUri = $SQLServerName+".database.windows.net"
+$privateDnsZoneName="privatelink.database.windows.net"
+$privatelink =$WebAppNamePrefix+"-db-link"
+
+$ServerUri = $SQLServerName+".privatelink.database.windows.net"
 $Connection="Server=tcp:"+$ServerUri+";Database="+$SQLDatabaseName+";Authentication=Active Directory Managed Identity;"
 
 $ADApplicationSecretKeyVault="@Microsoft.KeyVault(VaultName=$KeyVault;SecretName=ADApplicationSecret)"
@@ -298,7 +300,6 @@ az group create --location $Location --name $ResourceGroupForDeployment --output
 az network vnet create --name $vnetName --resource-group $ResourceGroupForDeployment --location $location --address-prefix 10.0.0.0/16
 az network vnet subnet create --name $subnetName --resource-group $ResourceGroupForDeployment --vnet-name $vnetName --address-prefixes 10.0.1.0/24
 az network vnet subnet create --name $subnetWebName --resource-group $ResourceGroupForDeployment --vnet-name $vnetName --address-prefixes 10.0.2.0/24
-
 
 $Sig= ([System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes((New-Guid))))
 
@@ -398,6 +399,23 @@ Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName   -Query $qu
 
 Write-host "      ➡️ Execute SQL schema/data script"
 Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName  -inputfile "./schema.sql" -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
+
+
+#Setup Private Endpoint
+
+# Get SQL Server
+sqlServer=$(az sql server show --name $SQLServerName --resource-group $ResourceGroupForDeployment)
+
+# Create a private endpoint
+az network private-endpoint create --name $privateEndpointName --resource-group $ResourceGroupForDeployment --vnet-name $vnetName --subnet $subnetName --private-connection-resource-id $sqlServer.id --group-ids sqlServer --connection-name sqlConnection
+
+
+# Create a private DNS zone
+az network private-dns zone create --name $privateDnsZoneName --resource-group $ResourceGroupForDeployment
+
+
+# Link the private DNS zone to the VNet
+az network private-dns link vnet create --name $privatelink --resource-group $ResourceGroupForDeployment --virtual-network $vnetName --zone-name $privateDnsZoneName --registration-enabled false
 
 if ($env:ACC_CLOUD -eq $null){
     Write-host "      ➡️ Running in local environment - Add current IP to firewall"
