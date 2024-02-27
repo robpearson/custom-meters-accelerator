@@ -10,16 +10,16 @@ namespace ManagedApplicationScheduler.DataAccess.Services
         /// <summary>
         /// The this.context.
         /// </summary>
-        private readonly CosmosDbContext context;
+        private readonly ApplicationsDBContext context;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplicationLogRepository"/> class.
         /// </summary>
         /// <param name="context">The this.context.</param>
-        public ApplicationConfigurationRepository(CosmosDbContext context)
+        public ApplicationConfigurationRepository(ApplicationsDBContext context)
         {
             this.context = context;
-            this.context.Database.EnsureCreated();
+
         }
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace ManagedApplicationScheduler.DataAccess.Services
 
         public IEnumerable<ApplicationConfiguration> GetAll()
         {
-            return this.context.ApplicationConfiguration;
+            return this.context.ApplicationConfigurations;
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace ManagedApplicationScheduler.DataAccess.Services
         /// <returns></returns>
         public ApplicationConfiguration? Get(string id)
         {
-            return this.context.ApplicationConfiguration.Where(s => s.id == id).FirstOrDefault();
+            return this.context.ApplicationConfigurations.Where(s => s.id == id).FirstOrDefault();
         }
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace ManagedApplicationScheduler.DataAccess.Services
         /// <returns></returns>
         public int Save(ApplicationConfiguration entity)
         {
-            this.context.Add(entity);
+            this.context.ApplicationConfigurations.Add(entity);
             return this.context.SaveChanges();
 
         }
@@ -57,19 +57,19 @@ namespace ManagedApplicationScheduler.DataAccess.Services
         public string? GetValueByName(string name)
         {
 
-            var config = context.ApplicationConfiguration.Where(s => s.Name == name).FirstOrDefault();
+            var config = context.ApplicationConfigurations.Where(s => s.Name == name).FirstOrDefault();
             return config?.Value;
         }
 
         public void Update(ApplicationConfiguration entity)
         {
-            this.context.Update(entity);
+            this.context.ApplicationConfigurations.Update(entity);
             this.context.SaveChanges();
         }
 
         public void Remove(ApplicationConfiguration entity)
         {
-            this.context.Remove(entity);
+            this.context.ApplicationConfigurations.Remove(entity);
             this.context.SaveChanges();
         }
 

@@ -67,14 +67,13 @@ public class Startup
             GrantType = this.Configuration["GrantType"],
             SignedOutRedirectUri = this.Configuration["SignedOutRedirectUri"],
             TenantId = this.Configuration["TenantId"] ?? Guid.Empty.ToString(),
-            DataBaseName = this.Configuration["CosmoDatabase"],
             PC_TenantId = this.Configuration["PC_TenantId"],
             PC_ClientID = this.Configuration["PC_ClientId"],
             PC_ClientSecret = this.Configuration["PC_ClientSecret"],
             PC_Scope = this.Configuration["PC_Scope"],
             Scope = this.Configuration["Scope"],
-            Signature = this.Configuration["Signature"],
-            CosmoDbEndPoint = this.Configuration["CosmoDbEndPoint"]
+            Signature = this.Configuration["Signature"]
+            
             
             
         };
@@ -122,7 +121,8 @@ public class Startup
             .AddSingleton<KnownUsersModel>(knownUsers);
 
         services
-         .AddDbContext<CosmosDbContext>(options => options.UseCosmos(this.Configuration.GetConnectionString("DefaultConnection"), config.DataBaseName));
+         .AddDbContext<ApplicationsDBContext>(options => options.UseSqlServer(this.Configuration.GetConnectionString("DefaultConnection")));
+         
         services.AddDistributedMemoryCache();
         services.AddSession(options =>
         {

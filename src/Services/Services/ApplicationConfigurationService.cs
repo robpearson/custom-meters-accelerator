@@ -115,8 +115,6 @@ public class ApplicationConfigurationService
         entity.Name = name;
         entity.Value = value;
         entity.Description = description;
-        entity.PartitionKey = entity.id;
-
         this.applicationConfigurationRepository.Save(entity);
     }
 }

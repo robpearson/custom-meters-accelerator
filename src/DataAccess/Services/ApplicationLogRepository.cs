@@ -10,16 +10,16 @@ namespace ManagedApplicationScheduler.DataAccess.Services
         /// <summary>
         /// The this.context.
         /// </summary>
-        private readonly CosmosDbContext context;
+        private readonly ApplicationsDBContext context;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplicationLogRepository"/> class.
         /// </summary>
         /// <param name="context">The this.context.</param>
-        public ApplicationLogRepository(CosmosDbContext context)
+        public ApplicationLogRepository(ApplicationsDBContext context)
         {
             this.context = context;
-            this.context.Database.EnsureCreated();
+        
         }
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace ManagedApplicationScheduler.DataAccess.Services
 
         public IEnumerable<ApplicationLog> GetAll()
         {
-            return this.context.ApplicationLog;
+            return this.context.ApplicationLogs;
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace ManagedApplicationScheduler.DataAccess.Services
         /// <returns></returns>
         public ApplicationLog? Get(string id)
         {
-            return this.context.ApplicationLog.Where(s => s.id == id).FirstOrDefault();
+            return this.context.ApplicationLogs.Where(s => s.id == id).FirstOrDefault();
         }
 
         /// <summary>
@@ -49,20 +49,20 @@ namespace ManagedApplicationScheduler.DataAccess.Services
         /// <returns></returns>
         public int Save(ApplicationLog entity)
         {
-            this.context.Add(entity);
+            this.context.ApplicationLogs.Add(entity);
             return this.context.SaveChanges();
 
         }
 
         public void Update(ApplicationLog entity)
         {
-            this.context.Update(entity);
+            this.context.ApplicationLogs.Update(entity);
             this.context.SaveChanges();
         }
 
         public void Remove(ApplicationLog entity)
         {
-            this.context.Remove(entity);
+            this.context.ApplicationLogs.Remove(entity);
             this.context.SaveChanges();
         }
     }

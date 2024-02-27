@@ -62,7 +62,6 @@ public class SubscriptionService
                 Publisher = subscription.Publisher,
                 ResourceUsageId = subscription.ResourceUsageId,
                 id = subscription.id,
-                PartitionKey = subscription.id,
                 SubscriptionStatus = subscription.SubscriptionStatus,
                 Version = subscription.Version,
                 Dimension = subscription.Dimension,

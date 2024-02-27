@@ -30,7 +30,6 @@ class Program
             GrantType = configuration["GrantType"],
             SignedOutRedirectUri = configuration["SignedOutRedirectUri"],
             TenantId = configuration["TenantId"] ?? Guid.Empty.ToString(),
-            DataBaseName = configuration["CosmoDatabase"],
             PC_TenantId = configuration["PC_TenantId"],
             PC_ClientID = configuration["PC_ClientId"],
             PC_ClientSecret = configuration["PC_ClientSecret"],
@@ -42,7 +41,7 @@ class Program
 
 
         var services = new ServiceCollection()
-            .AddDbContext<CosmosDbContext>(options => options.UseCosmos(configuration.GetConnectionString("DefaultConnection"), config.DataBaseName))
+            .AddDbContext<ApplicationsDBContext>(options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")))
             .AddScoped<IScheduledTasksRepository, ScheduledTasksRepository>()
             .AddScoped<ISubscriptionsRepository, SubscriptionsRepository>()
             .AddScoped<IUsageResultRepository, UsageResultRepository>()

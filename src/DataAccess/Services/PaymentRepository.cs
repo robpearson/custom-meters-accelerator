@@ -9,15 +9,15 @@ namespace ManagedApplicationScheduler.DataAccess.Services
         /// <summary>
         /// The context.
         /// </summary>
-        private readonly CosmosDbContext context;
+        private readonly ApplicationsDBContext context;
 
 
 
 
-        public PaymentRepository(CosmosDbContext context)
+        public PaymentRepository(ApplicationsDBContext context)
         {
             this.context = context;
-            this.context.Database.EnsureCreated();
+            
         }
 
         /// <summary>
@@ -27,7 +27,7 @@ namespace ManagedApplicationScheduler.DataAccess.Services
 
         public IEnumerable<Payment> GetAll()
         {
-            return this.context.Payment;
+            return this.context.Payments;
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace ManagedApplicationScheduler.DataAccess.Services
         /// <returns></returns>
         public Payment? Get(string id)
         {
-            return this.context.Payment.Where(s => s.id == id).FirstOrDefault();
+            return this.context.Payments.Where(s => s.id == id).FirstOrDefault();
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace ManagedApplicationScheduler.DataAccess.Services
         /// <returns></returns>
         public int Save(Payment entity)
         {
-            this.context.Add(entity);
+            this.context.Payments.Add(entity);
             return this.context.SaveChanges();
 
         }
@@ -55,7 +55,7 @@ namespace ManagedApplicationScheduler.DataAccess.Services
         public void Update(Payment entity)
         {
 
-            this.context.Update(entity);
+            this.context.Payments.Update(entity);
             this.context.SaveChanges();
 
 
@@ -63,7 +63,7 @@ namespace ManagedApplicationScheduler.DataAccess.Services
 
         public void Remove(Payment entity)
         {
-            this.context.Remove(entity);
+            this.context.Payments.Remove(entity);
             this.context.SaveChanges();
         }
     }

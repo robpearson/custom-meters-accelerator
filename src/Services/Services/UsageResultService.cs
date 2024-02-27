@@ -31,7 +31,6 @@ namespace ManagedApplicationScheduler.Services.Services
             entity.Dimension = meteringUsageResultModel.Dimension;
             entity.PlanId = meteringUsageResultModel.PlanId;
             entity.ScheduledTaskName = meteringUsageResultModel.ScheduledTaskName;
-            entity.PartitionKey = entity.id;
             entity.ResourceUri = meteringUsageResultModel.ResourceUri;
             return this.usageResultRepository.Save(entity);
         }

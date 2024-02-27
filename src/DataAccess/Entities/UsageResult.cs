@@ -57,7 +57,7 @@ namespace ManagedApplicationScheduler.DataAccess.Entities
         /// <value>
         /// The quantity.
         /// </value>
-        public decimal Quantity { get; set; }
+        public double Quantity { get; set; }
 
         /// <summary>
         /// Gets or sets the dimension.
@@ -82,9 +82,6 @@ namespace ManagedApplicationScheduler.DataAccess.Entities
         /// The status.
         /// </value>
         public string? ScheduledTaskName { get; set; }
-
-
-        public string? PartitionKey { get; set; }
 
         public string? ResourceUri { get; set; }
 
