@@ -284,7 +284,7 @@ $privateDnsZoneName="privatelink.database.windows.net"
 $privatelink =$WebAppNamePrefix+"-db-link"
 
 $ServerUri = $SQLServerName+".privatelink.database.windows.net"
-$Connection="Server=tcp:"+$ServerUri+";Database="+$SQLDatabaseName+";Authentication=Active Directory Managed Identity;"
+$Connection="Server=tcp:"+$ServerUri+";Database="+$SQLDatabaseName+";TrustServerCertificate=True;Authentication=Active Directory Managed Identity;"
 
 $ADApplicationSecretKeyVault="@Microsoft.KeyVault(VaultName=$KeyVault;SecretName=ADApplicationSecret)"
 $PCADApplicationSecretKeyVault="@Microsoft.KeyVault(VaultName=$KeyVault;SecretName=PCADApplicationSecret)"
@@ -404,18 +404,20 @@ Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName  -inputfile 
 #Setup Private Endpoint
 
 # Get SQL Server
-sqlServer=$(az sql server show --name $SQLServerName --resource-group $ResourceGroupForDeployment)
+$sqlServerId=az sql server show --name $SQLServerName --resource-group $ResourceGroupForDeployment --query id -o tsv
 
 # Create a private endpoint
-az network private-endpoint create --name $privateEndpointName --resource-group $ResourceGroupForDeployment --vnet-name $vnetName --subnet $subnetName --private-connection-resource-id $sqlServer.id --group-ids sqlServer --connection-name sqlConnection
+az network private-endpoint create --name $privateEndpointName --resource-group $ResourceGroupForDeployment --vnet-name $vnetName --subnet $subnetName --private-connection-resource-id $sqlServerId --group-ids sqlServer --connection-name sqlConnection
 
 
 # Create a private DNS zone
 az network private-dns zone create --name $privateDnsZoneName --resource-group $ResourceGroupForDeployment
 
-
 # Link the private DNS zone to the VNet
 az network private-dns link vnet create --name $privatelink --resource-group $ResourceGroupForDeployment --virtual-network $vnetName --zone-name $privateDnsZoneName --registration-enabled false
+
+az network private-endpoint dns-zone-group create --resource-group $ResourceGroupForDeployment --endpoint-name $privateEndpointName --name "sql-zone-group"   --private-dns-zone $privateDnsZoneName   --zone-name "sqlserver"
+
 
 if ($env:ACC_CLOUD -eq $null){
     Write-host "      ➡️ Running in local environment - Add current IP to firewall"
