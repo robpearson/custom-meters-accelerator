@@ -282,7 +282,7 @@ $subnetWebName=$WebAppNamePrefix+"-web"
 $privateEndpointName=$WebAppNamePrefix+"-db-pe"
 $zoneName="privatelink.database.windows.net"
 $ServerUri = $SQLServerName+".database.windows.net"
-$Connection="Data Source=tcp:"+$ServerUri+",1433;Initial Catalog="+$SQLDatabaseName+";Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication=`"Active Directory Default`";"
+$Connection="Data Source=tcp:"+$ServerUri+",1433;Initial Catalog="+$SQLDatabaseName+";Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication=Active Directory Default;"
 $ADApplicationSecretKeyVault="@Microsoft.KeyVault(VaultName=$KeyVault;SecretName=ADApplicationSecret)"
 $PCADApplicationSecretKeyVault="@Microsoft.KeyVault(VaultName=$KeyVault;SecretName=PCADApplicationSecret)"
 # $DefaultConnectionKeyVault="@Microsoft.KeyVault(VaultName=$KeyVault;SecretName=DefaultConnection) "
@@ -379,18 +379,18 @@ az keyvault update --resource-group $ResourceGroupForDeployment --name $KeyVault
 az keyvault update --resource-group $ResourceGroupForDeployment --name $KeyVault --default-action Deny
 
 Write-host "      ➡️ Login into SQL Server"
-write-host "$webAppNameAdminId"
-$webAppId = az ad sp show --id $webAppNameAdminId --query appId -o tsv
-write-host "$webAppId"
-$sid = "0x" + [System.BitConverter]::ToString(([guid]$webAppId).ToByteArray()).Replace("-", "")
-$queryAddUser="CREATE USER ["+$webAppNameAdmin+"] WITH DEFAULT_SCHEMA=[dbo], SID ="+$sid+", TYPE = E;"
+
+$token = az account get-access-token --resource="https://database.windows.net" --query accessToken --output tsv
+
+$queryAddUser="CREATE USER ["+$webAppNameAdmin+"] FROM EXTERNAL PROVIDER"
 $queryAlterUser1="ALTER ROLE db_datareader ADD MEMBER ["+$webAppNameAdmin+"];"
 $queryAlterUser2="ALTER ROLE db_ddladmin ADD MEMBER ["+$webAppNameAdmin+"];"
 $queryAlterUser3=" ALTER ROLE db_datawriter ADD MEMBER ["+$webAppNameAdmin+"];"
 
 
 Write-host "      ➡️ Add WebApp MSI to SQL Server"
-Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName   -Query $queryAddUser -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
+
+Invoke-SqlCmd -ServerInstance $ServerUri  -Database $SQLDatabaseName -AccessToken $token -Query $queryAddUser
 Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName   -Query $queryAlterUser1 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
 Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName   -Query $queryAlterUser2 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
 Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName   -Query $queryAlterUser3 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
