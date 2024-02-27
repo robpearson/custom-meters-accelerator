@@ -392,10 +392,10 @@ $queryAlterUser3=" ALTER ROLE db_datawriter ADD MEMBER ["+$webAppNameAdmin+"];"
 
 Write-host "      ➡️ Add WebApp MSI to SQL Server"
 
-Invoke-SqlCmd -ServerInstance $ServerUri  -Database $SQLDatabaseName -AccessToken $token -Query $queryAddUser
-Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName   -Query $queryAlterUser1 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
-Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName   -Query $queryAlterUser2 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
-Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName   -Query $queryAlterUser3 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
+Invoke-SqlCmd -ServerInstance $SQLServerName  -Database $SQLDatabaseName -AccessToken $token -Query $queryAddUser
+Invoke-Sqlcmd -ServerInstance $SQLServerName -database $SQLDatabaseName   -Query $queryAlterUser1 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
+Invoke-Sqlcmd -ServerInstance $SQLServerName -database $SQLDatabaseName   -Query $queryAlterUser2 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
+Invoke-Sqlcmd -ServerInstance $SQLServerName -database $SQLDatabaseName   -Query $queryAlterUser3 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
 
 Write-host "      ➡️ Execute SQL schema/data script"
 Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName  -inputfile "./schema.sql" -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
