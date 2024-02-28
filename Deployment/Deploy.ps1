@@ -282,9 +282,9 @@ $subnetWebName=$WebAppNamePrefix+"-web"
 $privateEndpointName=$WebAppNamePrefix+"-db-pe"
 $privateDnsZoneName="privatelink.database.windows.net"
 $privatelink =$WebAppNamePrefix+"-db-link"
-
-$ServerUri = $SQLServerName+".privatelink.database.windows.net"
-$Connection="Server=tcp:"+$ServerUri+";Database="+$SQLDatabaseName+";TrustServerCertificate=True;Authentication=Active Directory Managed Identity;"
+$ServerUri = $SQLServerName+".database.windows.net"
+$ServerUriPrivate = $SQLServerName+".privatelink.database.windows.net"
+$Connection="Server=tcp:"+$ServerUriPrivate+";Database="+$SQLDatabaseName+";TrustServerCertificate=True;Authentication=Active Directory Managed Identity;"
 
 $ADApplicationSecretKeyVault="@Microsoft.KeyVault(VaultName=$KeyVault;SecretName=ADApplicationSecret)"
 $PCADApplicationSecretKeyVault="@Microsoft.KeyVault(VaultName=$KeyVault;SecretName=PCADApplicationSecret)"
@@ -393,12 +393,12 @@ $queryAlterUser3=" ALTER ROLE db_datawriter ADD MEMBER ["+$webAppNameAdmin+"];"
 Write-host "      ➡️ Add WebApp MSI to SQL Server"
 
 Invoke-SqlCmd -ServerInstance $SQLServerName  -Database $SQLDatabaseName -AccessToken $token -Query $queryAddUser
-Invoke-Sqlcmd -ServerInstance $SQLServerName -database $SQLDatabaseName   -Query $queryAlterUser1 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
-Invoke-Sqlcmd -ServerInstance $SQLServerName -database $SQLDatabaseName   -Query $queryAlterUser2 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
-Invoke-Sqlcmd -ServerInstance $SQLServerName -database $SQLDatabaseName   -Query $queryAlterUser3 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
+Invoke-Sqlcmd -ServerInstance $SQLServerName -database $SQLDatabaseName   -Query $queryAlterUser1 -AccessToken $token
+Invoke-Sqlcmd -ServerInstance $SQLServerName -database $SQLDatabaseName   -Query $queryAlterUser2 -AccessToken $token
+Invoke-Sqlcmd -ServerInstance $SQLServerName -database $SQLDatabaseName   -Query $queryAlterUser3 -AccessToken $token
 
 Write-host "      ➡️ Execute SQL schema/data script"
-Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName  -inputfile "./schema.sql" -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
+Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName  -inputfile "./schema.sql"  -AccessToken $token
 
 
 #Setup Private Endpoint
