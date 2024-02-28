@@ -115,7 +115,7 @@ Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName   -Query $qu
 Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName   -Query $queryAlterUser3 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
 
 Write-host "      ➡️ Execute SQL schema/data script"
-Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName  -inputfile "./schema.sql" -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
+Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName  -inputfile "./schema.sql" -AccessToken $token
 
 
 #Setup Private Endpoint
