@@ -456,10 +456,11 @@ Write-host ""
 Write-host "   🔵 Add The following URL in PartnerCenter AMA Plan Technical Configuration"
 Write-host "      ➡️ Notification Webhook section: https://$WebAppNamePrefix-admin.azurewebsites.net/api?sig=$Sig"
 Write-host ""
+Write-host "   🔵 Add The following URL to your HLEM Configmap.yaml"
+Write-host "      ➡️ Container Webhook section: https://$WebAppNamePrefix-admin.azurewebsites.net/api/container?sig=$Sig"
+Write-host ""
 Write-host "   🔵 Use the Following WebApp to access the Admin Portal"
 Write-host "      ➡️ Admin Portal: https://$WebAppNamePrefix-admin.azurewebsites.net"
-
-
 
 
 $duration = (Get-Date) - $startTime
