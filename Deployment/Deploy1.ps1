@@ -101,19 +101,6 @@ Write-host "      ➡️ Login into SQL Server"
 
 $token = az account get-access-token --resource="https://database.windows.net" --query accessToken --output tsv
 
-$queryAddUser="CREATE USER ["+$webAppNameAdmin+"] FROM EXTERNAL PROVIDER"
-$queryAlterUser1="ALTER ROLE db_datareader ADD MEMBER ["+$webAppNameAdmin+"];"
-$queryAlterUser2="ALTER ROLE db_ddladmin ADD MEMBER ["+$webAppNameAdmin+"];"
-$queryAlterUser3=" ALTER ROLE db_datawriter ADD MEMBER ["+$webAppNameAdmin+"];"
-
-
-Write-host "      ➡️ Add WebApp MSI to SQL Server"
-
-Invoke-SqlCmd -ServerInstance $ServerUri  -Database $SQLDatabaseName -AccessToken $token -Query $queryAddUser
-Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName   -Query $queryAlterUser1 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
-Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName   -Query $queryAlterUser2 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
-Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName   -Query $queryAlterUser3 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
-
 Write-host "      ➡️ Execute SQL schema/data script"
 Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName  -inputfile "./schema.sql" -AccessToken $token
 
