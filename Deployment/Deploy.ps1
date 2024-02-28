@@ -280,9 +280,11 @@ $vnetName=$WebAppNamePrefix+"-net"
 $subnetName=$WebAppNamePrefix+"-default"
 $subnetWebName=$WebAppNamePrefix+"-web"
 $privateEndpointName=$WebAppNamePrefix+"-db-pe"
-$zoneName="privatelink.database.windows.net"
+$privateDnsZoneName="privatelink.database.windows.net"
+$privatelink =$WebAppNamePrefix+"-db-link"
 $ServerUri = $SQLServerName+".database.windows.net"
-$Connection="Server=tcp:"+$ServerUri+";Database="+$SQLDatabaseName+";Authentication=Active Directory Managed Identity;"
+$ServerUriPrivate = $SQLServerName+".privatelink.database.windows.net"
+$Connection="Server=tcp:"+$ServerUriPrivate+";Database="+$SQLDatabaseName+";TrustServerCertificate=True;Authentication=Active Directory Managed Identity;"
 
 $ADApplicationSecretKeyVault="@Microsoft.KeyVault(VaultName=$KeyVault;SecretName=ADApplicationSecret)"
 $PCADApplicationSecretKeyVault="@Microsoft.KeyVault(VaultName=$KeyVault;SecretName=PCADApplicationSecret)"
@@ -298,7 +300,6 @@ az group create --location $Location --name $ResourceGroupForDeployment --output
 az network vnet create --name $vnetName --resource-group $ResourceGroupForDeployment --location $location --address-prefix 10.0.0.0/16
 az network vnet subnet create --name $subnetName --resource-group $ResourceGroupForDeployment --vnet-name $vnetName --address-prefixes 10.0.1.0/24
 az network vnet subnet create --name $subnetWebName --resource-group $ResourceGroupForDeployment --vnet-name $vnetName --address-prefixes 10.0.2.0/24
-
 
 $Sig= ([System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes((New-Guid))))
 
@@ -392,12 +393,31 @@ $queryAlterUser3=" ALTER ROLE db_datawriter ADD MEMBER ["+$webAppNameAdmin+"];"
 Write-host "      ➡️ Add WebApp MSI to SQL Server"
 
 Invoke-SqlCmd -ServerInstance $ServerUri  -Database $SQLDatabaseName -AccessToken $token -Query $queryAddUser
-Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName   -Query $queryAlterUser1 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
-Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName   -Query $queryAlterUser2 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
-Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName   -Query $queryAlterUser3 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
+Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName   -Query $queryAlterUser1 -AccessToken $token
+Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName   -Query $queryAlterUser2 -AccessToken $token
+Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName   -Query $queryAlterUser3 -AccessToken $token
 
 Write-host "      ➡️ Execute SQL schema/data script"
-Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName  -inputfile "./schema.sql" -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
+Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName  -inputfile "./schema.sql"  -AccessToken $token
+
+
+#Setup Private Endpoint
+
+# Get SQL Server
+$sqlServerId=az sql server show --name $SQLServerName --resource-group $ResourceGroupForDeployment --query id -o tsv
+
+# Create a private endpoint
+az network private-endpoint create --name $privateEndpointName --resource-group $ResourceGroupForDeployment --vnet-name $vnetName --subnet $subnetName --private-connection-resource-id $sqlServerId --group-ids sqlServer --connection-name sqlConnection
+
+
+# Create a private DNS zone
+az network private-dns zone create --name $privateDnsZoneName --resource-group $ResourceGroupForDeployment
+
+# Link the private DNS zone to the VNet
+az network private-dns link vnet create --name $privatelink --resource-group $ResourceGroupForDeployment --virtual-network $vnetName --zone-name $privateDnsZoneName --registration-enabled false
+
+az network private-endpoint dns-zone-group create --resource-group $ResourceGroupForDeployment --endpoint-name $privateEndpointName --name "sql-zone-group"   --private-dns-zone $privateDnsZoneName   --zone-name "sqlserver"
+
 
 if ($env:ACC_CLOUD -eq $null){
     Write-host "      ➡️ Running in local environment - Add current IP to firewall"
