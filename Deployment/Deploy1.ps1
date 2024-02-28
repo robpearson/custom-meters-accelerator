@@ -87,7 +87,8 @@ $privateDnsZoneName="privatelink.database.windows.net"
 $privatelink =$WebAppNamePrefix+"-db-link"
 
 $ServerUri = $SQLServerName+".privatelink.database.windows.net"
-$Connection="Server=tcp:"+$ServerUri+";Database="+$SQLDatabaseName+";TrustServerCertificate=True;Authentication=Active Directory Managed Identity;"
+$ServerUriPrivate = $SQLServerName+".privatelink.database.windows.net"
+$Connection="Server=tcp:"+$ServerUriPrivate+";Database="+$SQLDatabaseName+";TrustServerCertificate=True;Authentication=Active Directory Managed Identity;"
 
 $aadAdminObjectId=az ad signed-in-user show --query id -o tsv
 $aadAdminLogin=az ad signed-in-user show --query mail -o tsv
@@ -108,10 +109,10 @@ $queryAlterUser3=" ALTER ROLE db_datawriter ADD MEMBER ["+$webAppNameAdmin+"];"
 
 Write-host "      ➡️ Add WebApp MSI to SQL Server"
 
-Invoke-SqlCmd -ServerInstance $SQLServerName  -Database $SQLDatabaseName -AccessToken $token -Query $queryAddUser
-Invoke-Sqlcmd -ServerInstance $SQLServerName -database $SQLDatabaseName   -Query $queryAlterUser1 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
-Invoke-Sqlcmd -ServerInstance $SQLServerName -database $SQLDatabaseName   -Query $queryAlterUser2 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
-Invoke-Sqlcmd -ServerInstance $SQLServerName -database $SQLDatabaseName   -Query $queryAlterUser3 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
+Invoke-SqlCmd -ServerInstance $ServerUri  -Database $SQLDatabaseName -AccessToken $token -Query $queryAddUser
+Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName   -Query $queryAlterUser1 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
+Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName   -Query $queryAlterUser2 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
+Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName   -Query $queryAlterUser3 -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
 
 Write-host "      ➡️ Execute SQL schema/data script"
 Invoke-Sqlcmd -ServerInstance $ServerUri -database $SQLDatabaseName  -inputfile "./schema.sql" -Username $SQLAdminLogin -Password $SQLAdminLoginPassword 
