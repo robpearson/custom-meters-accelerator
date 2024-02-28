@@ -86,7 +86,7 @@ $privateEndpointName=$WebAppNamePrefix+"-db-pe"
 $privateDnsZoneName="privatelink.database.windows.net"
 $privatelink =$WebAppNamePrefix+"-db-link"
 
-$ServerUri = $SQLServerName+".privatelink.database.windows.net"
+$ServerUri = $SQLServerName+".database.windows.net"
 $ServerUriPrivate = $SQLServerName+".privatelink.database.windows.net"
 $Connection="Server=tcp:"+$ServerUriPrivate+";Database="+$SQLDatabaseName+";TrustServerCertificate=True;Authentication=Active Directory Managed Identity;"
 
