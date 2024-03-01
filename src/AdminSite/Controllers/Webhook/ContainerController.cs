@@ -1,11 +1,13 @@
 ﻿using Azure.Identity;
 using ManagedApplicationScheduler.DataAccess.Contracts;
+using ManagedApplicationScheduler.DataAccess.Entities;
 using ManagedApplicationScheduler.Services.Configurations;
 using ManagedApplicationScheduler.Services.Models;
 using ManagedApplicationScheduler.Services.Services;
 using ManagedApplicationScheduler.Services.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -63,9 +65,11 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers.Webhook
                 // If provisioning of a marketplace application instance is successful, we persist a Meter entry to be picked up by the chron metric emitting job
                 if (notificationDefinition.EventType == "PUT" && notificationDefinition.ProvisioningState == "Succeeded")
                 {
+                    this.applicationLogService.AddApplicationLog($"Check If subscription {notificationDefinition.ApplicationId} Exists");
                     var sub = this.subscriptionService.GetSubscriptionByKey(notificationDefinition.Plan.Product,notificationDefinition.Plan.Name,notificationDefinition.SubscriptionKey);
                     if (sub is null)
                     {
+                        this.applicationLogService.AddApplicationLog($"Create new subscription for  {notificationDefinition.ApplicationId}");
                         var subscription = new SubscriptionModel
                         {
                             // CosmosDB does not support forward slashes in the id.
@@ -107,8 +111,10 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers.Webhook
                     }
                     else
                     {
+                       
                         if (sub.ResourceUri != notificationDefinition.ApplicationId)
                         {
+                            this.applicationLogService.AddApplicationLog($"Update subscription {sub.ResourceUri} with new ID {notificationDefinition.ApplicationId} ");
                             this.subscriptionService.UpdateSubscriptionResourceUri(sub.id, notificationDefinition.ApplicationId);
                             this.schedulerService.UpdateSchedulerResourceUri(sub.ResourceUri, notificationDefinition.ApplicationId);
                             sub.ResourceUri = notificationDefinition.ApplicationId;
@@ -131,8 +137,11 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers.Webhook
         {
             try
             {
+                this.applicationLogService.AddApplicationLog($"Check For Scheduled Tasks");
                 List<ScheduledTasksModel> task = new ();
                 var scheduledItems = this.schedulerService.GetEnabledSchedulersTasksBySubscription(subscription.ResourceUri);
+
+                this.applicationLogService.AddApplicationLog($"Number of Scheduled tasks is {scheduledItems.Count.ToString()}");
                 //GetCurrentUTC time
                 DateTime _currentUTCTime = DateTime.UtcNow;
                 TimeSpan ts = new TimeSpan(DateTime.UtcNow.Hour, 0, 0);
