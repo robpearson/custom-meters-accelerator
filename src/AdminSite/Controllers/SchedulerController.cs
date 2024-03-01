@@ -117,10 +117,12 @@ namespace ManagedApplicationScheduler.AdminSite.Controllers
             List<SelectListItem> DimensionsList = new();
             foreach (var item in allActiveMeteredSubscriptions)
             {
+                
                 var sub = item.ResourceUri.Split("/");
+
                 SubscriptionList.Add(new SelectListItem()
                 {
-                    Text = sub[2] + "|" + sub[8],
+                    Text = sub[2] + "|" + sub[sub.Length - 1],
                     Value = item.id.ToString(),
                 });
 

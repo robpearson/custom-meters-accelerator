@@ -128,7 +128,9 @@ namespace ManagedApplicationScheduler.Services.Services
         }
         public void SaveMilestonePayment(SubscriptionModel subscription)
         {
-            var appName = subscription.ResourceUri.Split("/")[8];
+            var list = subscription.ResourceUri.Split("/");
+            var appName = list[list.Length - 1];
+
                 var payment = GetPaymentByOfferByPlan(subscription.Product, subscription.PlanId);
                 foreach(var item in payment)
                 {
@@ -138,7 +140,6 @@ namespace ManagedApplicationScheduler.Services.Services
                         ResourceUri = subscription.ResourceUri,
                         PlanId = item.PlanId,
                         Dimension = item.Dimension,
-                        StartDate = item.StartDate.Value,
                         Frequency = SchedulerFrequencyEnum.OneTime.ToString(),
                         Quantity = item.Quantity,
                         Status = "Scheduled",
@@ -148,6 +149,10 @@ namespace ManagedApplicationScheduler.Services.Services
                     {
                         DateTime rounded = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour+1, 0, 0);
                         task.StartDate = rounded;
+                    }
+                    else
+                    {
+                        task.StartDate = item.StartDate;
                     }
                     this.scheduledTasksRepository.Save(task);
                 }
