@@ -128,15 +128,17 @@ namespace ManagedApplicationScheduler.Services.Services
         }
         public void SaveMilestonePayment(SubscriptionModel subscription)
         {
-            var list = subscription.ResourceUri.Split("/");
-            var appName = list[list.Length - 1];
+            try
+            {
+                var list = subscription.ResourceUri.Split("/");
+                var appName = list[list.Length - 1];
 
                 var payment = GetPaymentByOfferByPlan(subscription.Product, subscription.PlanId);
-                foreach(var item in payment)
+                foreach (var item in payment)
                 {
                     ScheduledTasks task = new ScheduledTasks()
                     {
-                        ScheduledTaskName = item.PaymentName+"-"+appName,
+                        ScheduledTaskName = item.PaymentName + "-" + appName,
                         ResourceUri = subscription.ResourceUri,
                         PlanId = item.PlanId,
                         Dimension = item.Dimension,
@@ -145,9 +147,9 @@ namespace ManagedApplicationScheduler.Services.Services
                         Status = "Scheduled",
                         id = Guid.NewGuid().ToString()
                     };
-                    if(item.PaymentType=="Upfront")
+                    if (item.PaymentType == "Upfront")
                     {
-                        DateTime rounded = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour+1, 0, 0);
+                        DateTime rounded = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour + 1, 0, 0);
                         task.StartDate = rounded;
                     }
                     else
@@ -156,7 +158,11 @@ namespace ManagedApplicationScheduler.Services.Services
                     }
                     this.scheduledTasksRepository.Save(task);
                 }
-                
+            }
+            catch (Exception ex)
+            {
+               Console.WriteLine(ex.Message);
+            }
              
 
         }
