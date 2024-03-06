@@ -72,7 +72,11 @@ Before using this project, please review the commercial marketplace documentatio
 - [Product Ingestion API for the commercial marketplace](https://learn.microsoft.com/en-us/partner-center/marketplace/product-ingestion-api). API details for Partner Center.
 - [Marketplace metering service API](https://docs.microsoft.com/azure/marketplace/partner-center-portal/marketplace-metering-service-apis). API details for the Marketplace Metering Service that enables event-based Meter.
 
-## AMA Meter Scheduler Overview
+## Custom Meter Accelerator with Azure Container Integration Overview
+
+![App Diagram](./docs/images/container.png)
+
+## Custom Meter Accelerator with Azure Application Integration Overview
 
 ![App Diagram](./docs/images/ama.jpg)
 
