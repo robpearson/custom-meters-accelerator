@@ -1,0 +1,36 @@
+name: "Build: Build Images and Create ACR"
+
+on:
+  push:
+      branches:
+      - main
+      - infra/*
+  workflow_dispatch:
+
+jobs:
+  langsmith-custom-meters-accelerator:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to Azure Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: langsmith.azurecr.io
+        username: langsmith
+        password: ${{ secrets.ACR_PASSWORD }}
+
+    - name: Build Docker Image
+      uses: docker/build-push-action@v2
+      working-directory: ./src
+      with:
+        context: .
+        file: ./Dockerfile
+        platforms: linux/amd64
+        push: true
+        tags: langsmith.azurecr.io/custom-meters-accelerator:${{inputs.tag}},langsmith.azurecr.io/custom-meters-accelerator:${{inputs.tag}}:latest
